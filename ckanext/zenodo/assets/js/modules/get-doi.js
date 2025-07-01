@@ -5,23 +5,21 @@ ckan.module('get-doi', function ($, _) {
     },
 
     _onClick: async function (event) {
-
       event.preventDefault();
-      var $form = this.el.closest('form');
-      console.log('Form found:', $form);
 
-      var fileInput = $form.find('input[type="file"]')[0];
+      const $form = this.el.closest('form');
+      const fileInput = $form.find('input[type="file"]')[0];
+
       if (fileInput && fileInput.files.length > 0) {
-        var file = fileInput.files[0];
-        console.log('File selected:', file);
+
+        const file = fileInput.files[0];
 
         // Get the description from the form
-        var description = $form.find('textarea[name="description"]').val() || '';
+        const description = $form.find('textarea[name="description"]').val() || '';
 
         try {
-          // var ACCESS_TOKEN = 'QSeEXsHHu3D2jcUkiE0PHyIZ3FCmc9TL2Mt8AkP8DxqmCe7jV2XXOTzgRaBs';
-          var ACCESS_TOKEN = window.ZENODO_TOKEN;
-          var headers = {"Content-Type": "application/json"};
+          const ACCESS_TOKEN = window.ZENODO_TOKEN;
+          const headers = {"Content-Type": "application/json"};
           const params = new URLSearchParams({ access_token: ACCESS_TOKEN }).toString();
 
           // remove the sandbox in the url when deploying to production and change the access token
@@ -121,16 +119,35 @@ ckan.module('get-doi', function ($, _) {
             dataset.extras.push({ key: 'doi', value: doi });
           }
 
-          console.log('Updated dataset with DOI:', dataset);
+          // Remove forbidden fields that CKAN does not accept in package_update
+          const forbidden = [
+            'tracking_summary', 'num_resources', 'num_tags',
+            'metadata_modified', 'metadata_created', 'isopen', 'revision_id',
+            'state', 'relationships_as_object', 'relationships_as_subject'
+          ];
+          for (const k of forbidden) delete dataset[k];
 
-          // Now update the dataset
+          // Now update the dataset with the full object
+          const payload = dataset;
+
+          console.log('Updated dataset with DOI:', dataset);
+          console.log('payload', JSON.stringify(payload));
+
+
+          // Get the csrf value from the page meta tag
+          const csrf_value = $('meta[name=_csrf_token]').attr('content')
+
+          
           const updateResp = await fetch(ckanApiUrl, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': window.CKAN_TOKEN 
+              'Accept': 'application/json',
+              'Authorization': window.CKAN_TOKEN,
+              'X-CSRF-Token': csrf_value,
+              // 'Authorization': 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJqdGkiOiJENTRZZ285dkVReThYTEZWbEdMZDlGTkdSeEZfOVJyUzVlWmZybW5VbmJNIiwiaWF0IjoxNzUxMzU2NDMwfQ.sB0d937Tu9OU0xau2EvUvYKNGd8FEIkHkkbd9_NGbig'
             },
-            body: JSON.stringify(dataset)
+            body: JSON.stringify(payload)
           });
 
           if (!updateResp.ok) {
@@ -141,6 +158,8 @@ ckan.module('get-doi', function ($, _) {
           
 
           alert('DOI created: ' + doi);
+
+          
         }catch (error) {
           console.error('Error uploading file to Zenodo:', error);
           alert('Error uploading file to Zenodo: ' + error.message);
