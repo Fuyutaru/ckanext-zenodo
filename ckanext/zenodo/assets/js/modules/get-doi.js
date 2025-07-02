@@ -115,6 +115,15 @@ ckan.module('get-doi', function ($, _) {
       }
     },
 
+    _DoiInDataset: function(dataset) {
+      for (let extra of dataset.extras) {
+        if (extra.key === 'doi') {
+          return true;
+        }
+      }
+      return false;
+    },
+
     _onClick: async function (event) {
       event.preventDefault();
       const $form = this.el.closest('form');
@@ -128,9 +137,17 @@ ckan.module('get-doi', function ($, _) {
           const getResp = await fetch(`/api/3/action/package_show?id=${datasetId}`);
           const dataset = (await getResp.json()).result;
 
-          const doi = await this._createAndPublishZenodoDeposition(file, description, dataset);
-          await this._addDoiToCkanDataset(doi, dataset);
-          alert('DOI created: ' + doi);
+          // change this part if you want to publish on zenodo muliple times
+          if (this._DoiInDataset(dataset)) {
+            alert('This dataset already has a DOI.');
+            return; 
+          }
+          else {
+            const doi = await this._createAndPublishZenodoDeposition(file, description, dataset);
+            await this._addDoiToCkanDataset(doi, dataset);
+            alert('DOI created: ' + doi);
+          }
+
         } catch (error) {
           console.error('Error uploading file to Zenodo:', error);
           alert('Error uploading file to Zenodo: ' + error.message);
