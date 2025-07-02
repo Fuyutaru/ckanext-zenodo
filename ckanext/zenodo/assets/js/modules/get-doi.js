@@ -74,9 +74,13 @@ ckan.module('get-doi', function ($, _) {
     _addDoiToCkanDataset: async function(doi) {
       const datasetId = window.CKAN_PACKAGE_NAME;
       const ckanApiUrl = '/api/3/action/package_update';
+
+      // Fetch the current dataset to update it
       const getResp = await fetch(`/api/3/action/package_show?id=${datasetId}`);
       const dataset = (await getResp.json()).result;
       dataset.extras = dataset.extras || [];
+
+      // Check if the DOI already exists in the dataset
       let found = false;
       for (let extra of dataset.extras) {
         if (extra.key === 'doi') {
@@ -88,13 +92,19 @@ ckan.module('get-doi', function ($, _) {
       if (!found) {
         dataset.extras.push({ key: 'doi', value: doi });
       }
+
+      // Remove forbidden fields from the dataset object
       const forbidden = [
         'tracking_summary', 'num_resources', 'num_tags',
         'metadata_modified', 'metadata_created', 'isopen', 'revision_id',
         'state', 'relationships_as_object', 'relationships_as_subject'
       ];
       for (const k of forbidden) delete dataset[k];
-      const payload = dataset;
+
+
+      // const payload = dataset;
+
+      // Add CSRF token for security and because CKAN requires it
       const csrf_value = $('meta[name=_csrf_token]').attr('content');
       const updateResp = await fetch(ckanApiUrl, {
         method: 'POST',
@@ -104,7 +114,7 @@ ckan.module('get-doi', function ($, _) {
           'Authorization': window.CKAN_TOKEN,
           'X-CSRF-Token': csrf_value,
         },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(dataset)
       });
       if (!updateResp.ok) {
         alert('Failed to update dataset with DOI');
