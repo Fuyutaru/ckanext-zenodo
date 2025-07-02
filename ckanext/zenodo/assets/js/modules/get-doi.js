@@ -5,7 +5,7 @@ ckan.module('get-doi', function ($, _) {
     },
 
     // Function to create a deposition, upload file, set metadata, and publish to get DOI
-    _createAndPublishZenodoDeposition: async function(file, description) {
+    _createAndPublishZenodoDeposition: async function(file, description, dataset) {
       // the token is in you ckan.ini or production.ini file in etc/lib/ckan
       const ACCESS_TOKEN = window.ZENODO_TOKEN; 
       const headers = {"Content-Type": "application/json"};
@@ -44,7 +44,7 @@ ckan.module('get-doi', function ($, _) {
           title: `CKAN-${file.name}`,
           upload_type: 'dataset',
           description: description || 'No description provided',
-          creators: [{ name: 'GeoEcomar', affiliation: 'GeoEcomar' }]
+          creators: [{ name: dataset.author || 'GeoEcomar', affiliation: dataset.organization.name || '' }]
         }
       };
       const metadataResponse = await fetch(`${baseUrl}/${deposition_id}?${params}`, {
@@ -71,13 +71,8 @@ ckan.module('get-doi', function ($, _) {
     },
 
     // Function to update CKAN dataset with DOI
-    _addDoiToCkanDataset: async function(doi) {
-      const datasetId = window.CKAN_PACKAGE_NAME;
+    _addDoiToCkanDataset: async function(doi, dataset) {
       const ckanApiUrl = '/api/3/action/package_update';
-
-      // Fetch the current dataset to update it
-      const getResp = await fetch(`/api/3/action/package_show?id=${datasetId}`);
-      const dataset = (await getResp.json()).result;
       dataset.extras = dataset.extras || [];
 
       // Check if the DOI already exists in the dataset
@@ -100,9 +95,6 @@ ckan.module('get-doi', function ($, _) {
         'state', 'relationships_as_object', 'relationships_as_subject'
       ];
       for (const k of forbidden) delete dataset[k];
-
-
-      // const payload = dataset;
 
       // Add CSRF token for security and because CKAN requires it
       const csrf_value = $('meta[name=_csrf_token]').attr('content');
@@ -131,8 +123,13 @@ ckan.module('get-doi', function ($, _) {
         const file = fileInput.files[0];
         const description = $form.find('textarea[name="description"]').val() || '';
         try {
-          const doi = await this._createAndPublishZenodoDeposition(file, description);
-          await this._addDoiToCkanDataset(doi);
+          // Fetch the dataset information from CKAN
+          const datasetId = window.CKAN_PACKAGE_NAME;
+          const getResp = await fetch(`/api/3/action/package_show?id=${datasetId}`);
+          const dataset = (await getResp.json()).result;
+
+          const doi = await this._createAndPublishZenodoDeposition(file, description, dataset);
+          await this._addDoiToCkanDataset(doi, dataset);
           alert('DOI created: ' + doi);
         } catch (error) {
           console.error('Error uploading file to Zenodo:', error);
