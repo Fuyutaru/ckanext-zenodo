@@ -91,9 +91,15 @@
     <!-- button for DOI, type has to be button so it will not submit anything -->
     <!-- get-doi is the name of the module which is a js script -->
 
-    {% block content %}
-      <button class="btn btn-default" type="button" data-module="get-doi" >{{ _('DOI') }}</button>
-    {% endblock %}
+    {% if stage %}
+      {% block content %}
+        <button class="btn btn-default" type="button" data-module="get-doi" >{{ _('Get DOI') }}</button>
+      {% endblock %}
+    {% else %}
+      {% block add_doi %}
+        <button class="btn btn-default" type="button" data-module="get-doi" >{{ _('Another DOI') }}</button>
+      {% endblock %}
+    {% endif %}
 
     {% block again_button %}
       <button class="btn btn-default" name="save" value="again" type="submit">{{ _('Save & add another') }}</button>

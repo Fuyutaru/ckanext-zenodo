@@ -71,21 +71,21 @@ ckan.module('get-doi', function ($, _) {
     },
 
     // Function to update CKAN dataset with DOI
-    _addDoiToCkanDataset: async function(doi, dataset) {
+    _addDoiToCkanDataset: async function(doi, dataset, file) {
       const ckanApiUrl = '/api/3/action/package_update';
       dataset.extras = dataset.extras || [];
 
       // Check if the DOI already exists in the dataset
       let found = false;
       for (let extra of dataset.extras) {
-        if (extra.key === 'doi') {
+        if (extra.key === `doi_${file.name}`) {
           extra.value = doi;
           found = true;
           break;
         }
       }
       if (!found) {
-        dataset.extras.push({ key: 'doi', value: doi });
+        dataset.extras.push({ key: `doi_${file.name}`, value: doi });
       }
 
       // Remove forbidden fields from the dataset object
@@ -115,9 +115,9 @@ ckan.module('get-doi', function ($, _) {
       }
     },
 
-    _DoiInDataset: function(dataset) {
+    _DoiInDataset: function(dataset, file) {
       for (let extra of dataset.extras) {
-        if (extra.key === 'doi') {
+        if (extra.key === `doi_${file.name}`) {
           return true;
         }
       }
@@ -138,13 +138,13 @@ ckan.module('get-doi', function ($, _) {
           const dataset = (await getResp.json()).result;
 
           // change this part if you want to publish on zenodo muliple times
-          if (this._DoiInDataset(dataset)) {
+          if (this._DoiInDataset(dataset, file)) {
             alert('This dataset already has a DOI.');
             return; 
           }
           else {
             const doi = await this._createAndPublishZenodoDeposition(file, description, dataset);
-            await this._addDoiToCkanDataset(doi, dataset);
+            await this._addDoiToCkanDataset(doi, dataset, file);
             alert('DOI created: ' + doi);
           }
 
