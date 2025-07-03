@@ -124,6 +124,12 @@ ckan.module('get-doi', function ($, _) {
       return false;
     },
 
+    _isUploaded: function () {
+      const $form = this.el.closest('form');
+      const fileInput = $form.find('input[type="file"]')[0];
+      return fileInput && fileInput.files.length > 0;
+    },
+
     _onClick: async function (event) {
       event.preventDefault();
       const $form = this.el.closest('form');
@@ -153,6 +159,10 @@ ckan.module('get-doi', function ($, _) {
           alert('Error uploading file to Zenodo: ' + error.message);
           return;
         }
+      }
+      else {
+        alert('Please select a file to upload.');
+        return;
       }
     }
   };

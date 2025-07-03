@@ -36,8 +36,7 @@
         upload_label=_('File'),
         placeholder=_('http://example.com/external-data.csv') %}
     {% endblock %}
-<!-- SHOW DOI  -->
-    {% set show_doi = data.id %} 
+
 
     {% block basic_fields_name %}
       {{ form.input('name', id='field-name', label=_('Name'), placeholder=_('eg. January 2011 Gold Prices'), value=data.name, error=errors.name, classes=['control-full']) }}
@@ -93,13 +92,13 @@
 
     {% if stage %}
       {% if not data.id %}
-        {% block content %}
-          <button class="btn btn-default" type="button" data-module="get-doi" >{{ _('Get DOI') }}</button>
+        {% block doi %}
+          <button id='doi-btn' class="btn btn-default" type="button" data-module="get-doi" title="{{ _('Request a new DOI for this resource') }}">{{ _('Get DOI') }}</button>
         {% endblock %}
       {% endif %}
     {% else %}
       {% block add_doi %}
-        <button class="btn btn-default" type="button" data-module="get-doi" >{{ _('Another DOI') }}</button>
+        <button id='doi-btn' class="btn btn-default" type="button" data-module="get-doi" title="{{ _('Request another DOI for this resource') }}">{{ _('Another DOI') }}</button>
       {% endblock %}
     {% endif %}
 
