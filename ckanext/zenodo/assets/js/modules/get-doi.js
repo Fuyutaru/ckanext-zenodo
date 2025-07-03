@@ -124,16 +124,13 @@ ckan.module('get-doi', function ($, _) {
       return false;
     },
 
-    _isUploaded: function () {
-      const $form = this.el.closest('form');
-      const fileInput = $form.find('input[type="file"]')[0];
-      return fileInput && fileInput.files.length > 0;
-    },
 
     _onClick: async function (event) {
       event.preventDefault();
       const $form = this.el.closest('form');
       const fileInput = $form.find('input[type="file"]')[0];
+
+      // Check if a file has been uploaded
       if (fileInput && fileInput.files.length > 0) {
         const file = fileInput.files[0];
         const description = $form.find('textarea[name="description"]').val() || '';
