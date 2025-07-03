@@ -92,9 +92,11 @@
     <!-- get-doi is the name of the module which is a js script -->
 
     {% if stage %}
-      {% block content %}
-        <button class="btn btn-default" type="button" data-module="get-doi" >{{ _('Get DOI') }}</button>
-      {% endblock %}
+      {% if not data.id %}
+        {% block content %}
+          <button class="btn btn-default" type="button" data-module="get-doi" >{{ _('Get DOI') }}</button>
+        {% endblock %}
+      {% endif %}
     {% else %}
       {% block add_doi %}
         <button class="btn btn-default" type="button" data-module="get-doi" >{{ _('Another DOI') }}</button>
