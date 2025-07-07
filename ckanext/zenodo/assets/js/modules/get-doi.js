@@ -5,7 +5,7 @@ ckan.module('get-doi', function ($, _) {
     },
 
     // Function to create a deposition, upload file, set metadata, and publish to get DOI
-    _createAndPublishZenodoDeposition: async function(file, description, dataset) {
+    _createAndPublishZenodoDeposition: async function(file, description, dataset, resourceName) {
       // the token is in you ckan.ini or production.ini file in etc/lib/ckan
       const ACCESS_TOKEN = window.ZENODO_TOKEN; 
       const headers = {"Content-Type": "application/json"};
@@ -26,7 +26,7 @@ ckan.module('get-doi', function ($, _) {
 
       // Step 2: Upload the file
       const uploadResp = await fetch(
-        `${bucket_url}/${encodeURIComponent(file.name)}?access_token=${ACCESS_TOKEN}`,
+        `${bucket_url}/${encodeURIComponent(resourceName)}?access_token=${ACCESS_TOKEN}`,
         {
           method : 'PUT',
           headers: { 'Content-Type': 'application/octet-stream' }, // type used for the blob
@@ -41,7 +41,7 @@ ckan.module('get-doi', function ($, _) {
       // Step 3: Add metadata
       const metadata = {
         metadata: {
-          title: `CKAN-${file.name}`,
+          title: `${resourceName}`,
           upload_type: 'dataset',
           description: description || 'No description provided',
           creators: [{ name: dataset.author || 'GeoEcomar', affiliation: dataset.organization.name || '' }]
@@ -71,21 +71,21 @@ ckan.module('get-doi', function ($, _) {
     },
 
     // Function to update CKAN dataset with DOI
-    _addDoiToCkanDataset: async function(doi, dataset, file) {
+    _addDoiToCkanDataset: async function(doi, dataset, resourceName) {
       const ckanApiUrl = '/api/3/action/package_update';
       dataset.extras = dataset.extras || [];
 
       // Check if the DOI already exists in the dataset
       let found = false;
       for (let extra of dataset.extras) {
-        if (extra.key === `doi_${file.name}`) {
+        if (extra.key === `doi_${resourceName}`) {
           extra.value = doi;
           found = true;
           break;
         }
       }
       if (!found) {
-        dataset.extras.push({ key: `doi_${file.name}`, value: doi });
+        dataset.extras.push({ key: `doi_${resourceName}`, value: doi });
       }
 
       // Remove forbidden fields from the dataset object
@@ -115,9 +115,9 @@ ckan.module('get-doi', function ($, _) {
       }
     },
 
-    _DoiInDataset: function(dataset, file) {
+    _DoiInDataset: function(dataset, resourceName) {
       for (let extra of dataset.extras) {
-        if (extra.key === `doi_${file.name}`) {
+        if (extra.key === `doi_${resourceName}`) {
           return true;
         }
       }
@@ -134,23 +134,23 @@ ckan.module('get-doi', function ($, _) {
       if (fileInput && fileInput.files.length > 0) {
         const file = fileInput.files[0];
         const description = $form.find('textarea[name="description"]').val() || '';
+        // const resourceName = $form.find('input[name="name"]').val() || file.name;
+        const resourceName = window.CKAN_PACKAGE_NAME;
         try {
           // Fetch the dataset information from CKAN
           const datasetId = window.CKAN_PACKAGE_NAME;
           const getResp = await fetch(`/api/3/action/package_show?id=${datasetId}`);
           const dataset = (await getResp.json()).result;
 
-          // change this part if you want to publish on zenodo muliple times
-          if (this._DoiInDataset(dataset, file)) {
+          if (this._DoiInDataset(dataset, resourceName)) {
             alert('This dataset already has a DOI.');
             return; 
           }
           else {
-            const doi = await this._createAndPublishZenodoDeposition(file, description, dataset);
-            await this._addDoiToCkanDataset(doi, dataset, file);
+            const doi = await this._createAndPublishZenodoDeposition(file, description, dataset, resourceName);
+            await this._addDoiToCkanDataset(doi, dataset, resourceName);
             alert('DOI created: ' + doi);
           }
-
         } catch (error) {
           console.error('Error uploading file to Zenodo:', error);
           alert('Error uploading file to Zenodo: ' + error.message);
