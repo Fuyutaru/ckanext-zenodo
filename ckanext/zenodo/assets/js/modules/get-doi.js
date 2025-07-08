@@ -140,35 +140,40 @@ ckan.module('get-doi', function ($, _) {
       const $form = this.el.closest('form');
       const fileInput = $form.find('input[type="file"]')[0];
 
-      // Check if a file has been uploaded
-      if (fileInput && fileInput.files.length > 0) {
-        const file = fileInput.files[0];
-        // const description = $form.find('textarea[name="description"]').val() || ''; // keep for now
-        const resourceName = window.CKAN_PACKAGE_NAME;
-        try {
-          // Fetch the dataset information from CKAN
-          const datasetId = window.CKAN_PACKAGE_NAME;
-          const getResp = await fetch(`/api/3/action/package_show?id=${datasetId}`);
-          const dataset = (await getResp.json()).result;
+      const wantDoi = window.WANT_DOI;
+      console.log('Want DOI:', wantDoi);
 
-          if (this._DoiInDataset(dataset, resourceName)) {
-            alert('This dataset already has a DOI.');
-            return; 
+      if (wantDoi == 'yes') {
+      // Check if a file has been uploaded
+        if (fileInput && fileInput.files.length > 0) {
+          const file = fileInput.files[0];
+          // const description = $form.find('textarea[name="description"]').val() || ''; // keep for now
+          const resourceName = window.CKAN_PACKAGE_NAME;
+          try {
+            // Fetch the dataset information from CKAN
+            const datasetId = window.CKAN_PACKAGE_NAME;
+            const getResp = await fetch(`/api/3/action/package_show?id=${datasetId}`);
+            const dataset = (await getResp.json()).result;
+
+            if (this._DoiInDataset(dataset, resourceName)) {
+              alert('This dataset already has a DOI.');
+              return; 
+            }
+            else {
+              const doi = await this._createAndPublishZenodoDeposition(file, dataset, resourceName);
+              await this._addDoiToCkanDataset(doi, dataset, resourceName);
+              alert('DOI created: ' + doi);
+            }
+          } catch (error) {
+            console.error('Error uploading file to Zenodo:', error);
+            alert('Error uploading file to Zenodo: ' + error.message);
+            return;
           }
-          else {
-            const doi = await this._createAndPublishZenodoDeposition(file, dataset, resourceName);
-            await this._addDoiToCkanDataset(doi, dataset, resourceName);
-            alert('DOI created: ' + doi);
-          }
-        } catch (error) {
-          console.error('Error uploading file to Zenodo:', error);
-          alert('Error uploading file to Zenodo: ' + error.message);
+        }
+        else {
+          alert('Please select a file to upload.');
           return;
         }
-      }
-      else {
-        alert('Please select a file to upload.');
-        return;
       }
     }
   };

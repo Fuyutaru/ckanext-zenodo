@@ -3,11 +3,13 @@
 {% set data = data or {} %}
 {% set errors = errors or {} %}
 {% set action = form_action or h.url_for(dataset_type ~ '_resource.new', id=pkg_name) %}
+<input type="hidden" name="want_doi" value="{{ data.want_doi }}">
 
 <script>
   window.ZENODO_TOKEN = "{{ h.get_zenodo_token() }}";
   window.CKAN_TOKEN = "{{ h.get_ckan_token() }}";
   window.CKAN_PACKAGE_NAME = "{{ pkg_name }}";
+  window.WANT_DOI = "{{ data.want_doi }}";
 </script>
 
 <form id="resource-edit" class="dataset-form dataset-resource-form" method="post" action="{{ action }}" data-module="basic-form resource-form" enctype="multipart/form-data">
