@@ -44,7 +44,8 @@ ckan.module('get-doi', function ($, _) {
           title: `${resourceName}`,
           upload_type: 'dataset',
           description: dataset.notes || 'No description provided',
-          creators: [{ name: dataset.author || 'GeoEcomar', affiliation: dataset.organization.name || '' }]
+          creators: [{ name: dataset.author || 'GeoEcomar', affiliation: dataset.organization.name || '' }],
+          access_right: this._GetAccessRights(dataset),
         }
       };
       const metadataResponse = await fetch(`${baseUrl}/${deposition_id}?${params}`, {
@@ -122,6 +123,15 @@ ckan.module('get-doi', function ($, _) {
         }
       }
       return false;
+    },
+
+    _GetAccessRights: function(dataset) {
+      if (dataset.private) {
+        return 'closed';
+      }
+      else {
+        return 'open';
+      }
     },
 
 
