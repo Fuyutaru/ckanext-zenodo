@@ -18,12 +18,14 @@ then itself be extended to add/remove blocks of functionality. #}
   <div class="form-group">
     <label>{{ _('Do you want a DOI for this dataset?') }}</label><br>
     <label class="radio-inline">
-      <input type="radio" name="want_doi" value="yes" {% if data.want_doi == 'yes' %}checked{% endif %}> {{ _('Yes') }}
+      <input type="radio" name="want_doi" value="yes" {% if c.want_doi is defined and c.want_doi == 'yes' %}checked{% endif %}> {{ _('Yes') }}
     </label>
     <label class="radio-inline">
-      <input type="radio" name="want_doi" value="no" {% if data.want_doi == 'no' or not data.want_doi %}checked{% endif %}> {{ _('No') }}
+      <input type="radio" name="want_doi" value="no" {% if c.want_doi is defined and c.want_doi == 'no' or c.want_doi is not defined %}checked{% endif %}> {{ _('No') }}
     </label>
   </div>
+
+
 
 
 
