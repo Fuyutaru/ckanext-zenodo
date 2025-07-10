@@ -76,17 +76,20 @@ ckan.module('get-doi', function ($, _) {
       const ckanApiUrl = '/api/3/action/package_update';
       dataset.extras = dataset.extras || [];
 
+      const doiurl = `https://doi.org/${doi}`;
+      const doiLink = `<a href="${doiurl}" target="_blank">${doiurl}</a>`;
+
       // Check if the DOI already exists in the dataset
       let found = false;
       for (let extra of dataset.extras) {
         if (extra.key === `doi`) {
-          extra.value = doi;
+          extra.value = doiLink;
           found = true;
           break;
         }
       }
       if (!found) {
-        dataset.extras.push({ key: `doi`, value: doi });
+        dataset.extras.push({ key: `doi`, value: doiLink });
       }
 
       // Remove forbidden fields from the dataset object
