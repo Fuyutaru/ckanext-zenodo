@@ -72,21 +72,21 @@ ckan.module('get-doi', function ($, _) {
     },
 
     // Function to update CKAN dataset with DOI
-    _addDoiToCkanDataset: async function(doi, dataset, resourceName) {
+    _addDoiToCkanDataset: async function(doi, dataset) {
       const ckanApiUrl = '/api/3/action/package_update';
       dataset.extras = dataset.extras || [];
 
       // Check if the DOI already exists in the dataset
       let found = false;
       for (let extra of dataset.extras) {
-        if (extra.key === `doi_${resourceName}`) {
+        if (extra.key === `doi`) {
           extra.value = doi;
           found = true;
           break;
         }
       }
       if (!found) {
-        dataset.extras.push({ key: `doi_${resourceName}`, value: doi });
+        dataset.extras.push({ key: `doi`, value: doi });
       }
 
       // Remove forbidden fields from the dataset object
@@ -110,15 +110,15 @@ ckan.module('get-doi', function ($, _) {
         body: JSON.stringify(dataset)
       });
       if (!updateResp.ok) {
-        alert('Failed to update dataset with DOI');
+        console.log('Failed to update dataset with DOI');
       } else {
-        alert('DOI saved to dataset!');
+        console.log('DOI saved to dataset!');
       }
     },
 
-    _DoiInDataset: function(dataset, resourceName) {
+    _DoiInDataset: function(dataset) {
       for (let extra of dataset.extras) {
-        if (extra.key === `doi_${resourceName}`) {
+        if (extra.key === `doi`) {
           return true;
         }
       }
@@ -136,44 +136,53 @@ ckan.module('get-doi', function ($, _) {
 
 
     _onClick: async function (event) {
+      // Only run for the Finish button
+      // const $btn = $(event.target);
+      // if (!$btn.is('[name="save"][value="go-metadata"]')) {
+      //   return;
+      // }
       event.preventDefault();
       const $form = this.el.closest('form');
       const fileInput = $form.find('input[type="file"]')[0];
+      const radio_resp = window.RADIO_RESP;
+      console.log('Want DOI:', radio_resp);
 
-      const wantDoi = window.WANT_DOI;
-      console.log('Want DOI:', wantDoi);
-
-      if (wantDoi == 'yes') {
-      // Check if a file has been uploaded
+      if ($form.find('input[name="save"]').length === 0) {
+        $('<input>').attr({
+          type: 'hidden',
+          name: 'save',
+          value: 'go-metadata'
+        }).appendTo($form);
+      }
+      if (radio_resp == 'yes') {
         if (fileInput && fileInput.files.length > 0) {
           const file = fileInput.files[0];
-          // const description = $form.find('textarea[name="description"]').val() || ''; // keep for now
           const resourceName = window.CKAN_PACKAGE_NAME;
           try {
-            // Fetch the dataset information from CKAN
             const datasetId = window.CKAN_PACKAGE_NAME;
             const getResp = await fetch(`/api/3/action/package_show?id=${datasetId}`);
             const dataset = (await getResp.json()).result;
-
-            if (this._DoiInDataset(dataset, resourceName)) {
-              alert('This dataset already has a DOI.');
-              return; 
-            }
-            else {
+            if (this._DoiInDataset(dataset)) {
+              console.log('This dataset already has a DOI.');
+              $form.submit();
+              return;
+            } else {
               const doi = await this._createAndPublishZenodoDeposition(file, dataset, resourceName);
-              await this._addDoiToCkanDataset(doi, dataset, resourceName);
-              alert('DOI created: ' + doi);
+              await this._addDoiToCkanDataset(doi, dataset);
+              console.log('DOI created: ' + doi);
+              $form.submit();
             }
           } catch (error) {
             console.error('Error uploading file to Zenodo:', error);
             alert('Error uploading file to Zenodo: ' + error.message);
             return;
           }
-        }
-        else {
+        } else {
           alert('Please select a file to upload.');
           return;
         }
+      } else {
+        $form.submit();
       }
     }
   };

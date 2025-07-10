@@ -9,20 +9,20 @@
   window.CKAN_TOKEN = "{{ h.get_ckan_token() }}";
   window.CKAN_PACKAGE_NAME = "{{ pkg_name }}";
 
-  var wantDoi = "{{ c.want_doi }}";
-  console.log("Want DOI:", wantDoi);
 
   // Show/hide DOI button based on want_doi from localStorage or event
   function updateDoiButton() {
-    var doiBtn = document.getElementById('doi-btn');
-    var wantDoi = window.localStorage.getItem('want_doi');
-    if (doiBtn) {
-      if (wantDoi === 'yes') {
-        doiBtn.style.display = '';
-      } else {
-        doiBtn.style.display = 'none';
-      }
-    }
+    // var doiBtn = document.getElementById('doi-btn');
+    const wantDoi = window.localStorage.getItem('want_doi');
+    // if (doiBtn) {
+    //   if (wantDoi === 'yes') {
+    //     doiBtn.style.display = '';
+    //   } else {
+    //     doiBtn.style.display = 'none';
+    //   }
+    // }
+    window.RADIO_RESP = wantDoi;
+    console.log("Want DOI:", wantDoi);
   }
   document.addEventListener('DOMContentLoaded', function() {
     updateDoiButton();
@@ -110,7 +110,7 @@
     <!-- button for DOI, type has to be button so it will not submit anything -->
     <!-- get-doi is the name of the module which is a js script -->
 
-    {% if stage %}
+    <!-- {% if stage %}
       {% if not data.id %}
         {% block doi %}
           <button id='doi-btn' class="btn btn-default" type="button" data-module="get-doi" title="{{ _('Request a new DOI for this resource') }}">{{ _('Get DOI') }}</button>
@@ -120,14 +120,14 @@
       {% block add_doi %}
         <button id='doi-btn' class="btn btn-default" type="button" data-module="get-doi" title="{{ _('Request another DOI for this resource') }}">{{ _('Another DOI') }}</button>
       {% endblock %}
-    {% endif %}
+    {% endif %} -->
 
     {% block again_button %}
       <button class="btn btn-default" name="save" value="again" type="submit">{{ _('Save & add another') }}</button>
     {% endblock %}
     {% if stage %}
       {% block save_button %}
-        <button class="btn btn-primary" name="save" value="go-metadata" type="submit">{% block save_button_text %}{{ _('Finish') }}{% endblock %}</button>
+        <button class="btn btn-primary" name="save" value="go-metadata" type="submit" data-module="get-doi">{% block save_button_text %}{{ _('Finish') }}{% endblock %}</button>
       {% endblock %}
     {% else %}
       {% block add_button %}
