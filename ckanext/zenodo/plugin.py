@@ -26,3 +26,31 @@ class ZenodoPlugin(plugins.SingletonPlugin, toolkit.DefaultDatasetForm):
             'get_zenodo_token': helpers.get_zenodo_token,
             'get_ckan_token': helpers.get_ckan_token,
         }
+    
+    def create_package_schema(self):
+        schema = super(ZenodoPlugin, self).create_package_schema()
+        schema['resource_type'] = [
+            toolkit.get_validator('ignore_missing'),
+            toolkit.get_validator('unicode')
+        ]
+        return schema
+
+    def update_package_schema(self):
+        schema = super(ZenodoPlugin, self).update_package_schema()
+        schema['resource_type'] = [
+            toolkit.get_validator('ignore_missing'),
+            toolkit.get_validator('unicode')
+        ]
+        return schema
+
+    def show_package_schema(self):
+        schema = super(ZenodoPlugin, self).show_package_schema()
+        schema['resource_type'] = [
+            toolkit.get_validator('ignore_missing'),
+            toolkit.get_validator('unicode')
+        ]
+        return schema
+
+    
+
+

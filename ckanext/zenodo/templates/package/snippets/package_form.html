@@ -35,6 +35,33 @@ then itself be extended to add/remove blocks of functionality. #}
     {% snippet 'package/snippets/package_basic_fields.html', data=data, errors=errors %}
   {% endblock %}
 
+  <div class="form-group control-full">
+    {% set error = errors.resource_type %}
+    <label class="form-label" for="field-resource-type">{{ _('Resource Type') }}</label>
+    <div class="controls">
+      <select id="field-resource-type" name="resource_type" data-module="autocomplete">
+        {% set existing_resource_type = request.form.get('resource_type', data.get('resource_type')) %}
+        {% set empty_resource_type = _('Please select the resource type') %}
+        <option value="">{{ empty_resource_type }}</option>
+        <option value="publication" {% if existing_resource_type == 'publication' %}selected="selected"{% endif %}>{{ _('Publication') }}</option>
+        <option value="poster" {% if existing_resource_type == 'poster' %}selected="selected"{% endif %}>{{ _('Poster') }}</option>
+        <option value="presentation" {% if existing_resource_type == 'presentation' %}selected="selected"{% endif %}>{{ _('Presentation') }}</option>
+        <option value="dataset" {% if existing_resource_type == 'dataset' %}selected="selected"{% endif %}>{{ _('Dataset') }}</option>
+        <option value="image" {% if existing_resource_type == 'image' %}selected="selected"{% endif %}>{{ _('Image') }}</option>
+        <option value="video" {% if existing_resource_type == 'video' %}selected="selected"{% endif %}>{{ _('Video/Audio') }}</option>
+        <option value="software" {% if existing_resource_type == 'software' %}selected="selected"{% endif %}>{{ _('Software') }}</option>
+        <option value="lesson" {% if existing_resource_type == 'lesson' %}selected="selected"{% endif %}>{{ _('Lesson') }}</option>
+        <option value="physicalobject" {% if existing_resource_type == 'physicalobject' %}selected="selected"{% endif %}>{{ _('Physical object') }}</option>
+        <option value="other" {% if existing_resource_type == 'other' %}selected="selected"{% endif %}>{{ _('Other') }}</option>
+      </select>
+      {% if error %}<span class="error-block">{{ error }}</span>{% endif %}
+      <span class="info-block">
+        <i class="fa fa-info-circle"></i>
+        {{ _('Select the type that best describes your resource. This helps users find your dataset more easily.') }}
+      </span>
+    </div>
+  </div>
+
   {% block metadata_fields %}
     {% snippet 'package/snippets/package_metadata_fields.html', data=data, errors=errors %}
   {% endblock %}
