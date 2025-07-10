@@ -5,7 +5,7 @@ ckan.module('get-doi', function ($, _) {
     },
 
     // Function to create a deposition, upload file, set metadata, and publish to get DOI
-    _createAndPublishZenodoDeposition: async function(file, dataset, resourceName) {
+    _createAndPublishZenodoDeposition: async function(file, dataset, DataTitle) {
       // the token is in you ckan.ini or production.ini file in etc/lib/ckan
       const ACCESS_TOKEN = window.ZENODO_TOKEN; 
       const headers = {"Content-Type": "application/json"};
@@ -26,7 +26,7 @@ ckan.module('get-doi', function ($, _) {
 
       // Step 2: Upload the file
       const uploadResp = await fetch(
-        `${bucket_url}/${encodeURIComponent(resourceName)}?access_token=${ACCESS_TOKEN}`,
+        `${bucket_url}/${encodeURIComponent(DataTitle)}?access_token=${ACCESS_TOKEN}`,
         {
           method : 'PUT',
           headers: { 'Content-Type': 'application/octet-stream' }, // type used for the blob
@@ -41,7 +41,7 @@ ckan.module('get-doi', function ($, _) {
       // Step 3: Add metadata
       const metadata = {
         metadata: {
-          title: `${resourceName}`,
+          title: `${DataTitle}`,
           upload_type: 'dataset',
           description: dataset.notes || 'No description provided',
           creators: [{ name: dataset.author || 'GeoEcomar', affiliation: dataset.organization.name || '' }],
@@ -139,17 +139,13 @@ ckan.module('get-doi', function ($, _) {
 
 
     _onClick: async function (event) {
-      // Only run for the Finish button
-      // const $btn = $(event.target);
-      // if (!$btn.is('[name="save"][value="go-metadata"]')) {
-      //   return;
-      // }
-      event.preventDefault();
+      event.preventDefault(); // Important for preventing default form submission
       const $form = this.el.closest('form');
       const fileInput = $form.find('input[type="file"]')[0];
       const radio_resp = window.RADIO_RESP;
       console.log('Want DOI:', radio_resp);
 
+      // Mandatory because CKAN won't submit the form without a save input
       if ($form.find('input[name="save"]').length === 0) {
         $('<input>').attr({
           type: 'hidden',
@@ -160,17 +156,16 @@ ckan.module('get-doi', function ($, _) {
       if (radio_resp == 'yes') {
         if (fileInput && fileInput.files.length > 0) {
           const file = fileInput.files[0];
-          const resourceName = window.CKAN_PACKAGE_NAME;
+          const DataTitle = window.CKAN_PACKAGE_NAME;
           try {
-            const datasetId = window.CKAN_PACKAGE_NAME;
-            const getResp = await fetch(`/api/3/action/package_show?id=${datasetId}`);
-            const dataset = (await getResp.json()).result;
+            const getResp = await fetch(`/api/3/action/package_show?id=${DataTitle}`);
+            const dataset = (await getResp.json()).result; // Get the dataset object from ckan
             if (this._DoiInDataset(dataset)) {
               console.log('This dataset already has a DOI.');
               $form.submit();
               return;
             } else {
-              const doi = await this._createAndPublishZenodoDeposition(file, dataset, resourceName);
+              const doi = await this._createAndPublishZenodoDeposition(file, dataset, DataTitle);
               await this._addDoiToCkanDataset(doi, dataset);
               console.log('DOI created: ' + doi);
               $form.submit();
