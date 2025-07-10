@@ -8,8 +8,26 @@
   window.ZENODO_TOKEN = "{{ h.get_zenodo_token() }}";
   window.CKAN_TOKEN = "{{ h.get_ckan_token() }}";
   window.CKAN_PACKAGE_NAME = "{{ pkg_name }}";
-  window.WANT_DOI = "{{ c.want_doi }}";
-  console.log('radio', window.WANT_DOI);
+
+  var wantDoi = "{{ c.want_doi }}";
+  console.log("Want DOI:", wantDoi);
+
+  // Show/hide DOI button based on want_doi from localStorage or event
+  function updateDoiButton() {
+    var doiBtn = document.getElementById('doi-btn');
+    var wantDoi = window.localStorage.getItem('want_doi');
+    if (doiBtn) {
+      if (wantDoi === 'yes') {
+        doiBtn.style.display = '';
+      } else {
+        doiBtn.style.display = 'none';
+      }
+    }
+  }
+  document.addEventListener('DOMContentLoaded', function() {
+    updateDoiButton();
+    window.addEventListener('want_doi_changed', updateDoiButton);
+  });
 </script>
 
 <form id="resource-edit" class="dataset-form dataset-resource-form" method="post" action="{{ action }}" data-module="basic-form resource-form" enctype="multipart/form-data">

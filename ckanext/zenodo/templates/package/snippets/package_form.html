@@ -3,7 +3,7 @@
 
 {# This provides a full page that renders a form for adding a dataset. It can
 then itself be extended to add/remove blocks of functionality. #}
-<form id="dataset-edit" class="dataset-form" method="post" action="{{ action }}" data-module="basic-form" novalidate>
+<form id="dataset-edit" class="dataset-form" method="post" action="{{ action }}" data-module="basic-form doi-radio" novalidate>
   {{ h.csrf_input() }}
   {% block stages %}
     {{ h.snippet('package/snippets/stages.html', stages=stage, dataset_type=dataset_type) }}
@@ -14,20 +14,21 @@ then itself be extended to add/remove blocks of functionality. #}
   <input type="hidden" name="pkg_name" value="{{ data.id }}" />
   {% block errors %}{{ form.errors(error_summary) }}{% endblock %}
 
-  <!-- Radio button for Doi -->
-  <div class="form-group">
-    <label>{{ _('Do you want a DOI for this dataset?') }}</label><br>
-    <label class="radio-inline">
-      <input type="radio" name="want_doi" value="yes" {% if c.want_doi is defined and c.want_doi == 'yes' %}checked{% endif %}> {{ _('Yes') }}
-    </label>
-    <label class="radio-inline">
-      <input type="radio" name="want_doi" value="no" {% if c.want_doi is defined and c.want_doi == 'no' or c.want_doi is not defined %}checked{% endif %}> {{ _('No') }}
-    </label>
-  </div>
 
+  {% block radio %}
+    <!-- Radio button for Doi -->
+    <div class="form-group">
+      <label>{{ _('Do you want a DOI for this dataset?') }}</label><br>
+      <label class="radio-inline">
+        <input type="radio" id="doi-yes" name="want_doi" value="yes" > {{ _('Yes') }}
+      </label>
+      <label class="radio-inline">
+        <input type="radio" id="doi-no" name="want_doi" value="no" checked> {{ _('No') }}
+      </label>
+    </div>
+  {% endblock %}
 
-
-
+  
 
 
   {% block basic_fields %}
