@@ -39,10 +39,27 @@ ckan.module('get-doi', function ($, _) {
       }
 
       // Step 3: Add metadata
+      let resourceType = window.localStorage.getItem('resource_type') || 'other';
+
+      let type_list = resourceType.split('/');
+      let pubType = "";
+      let imgType = "";
+      if (type_list.length > 1) {
+        resourceType = type_list[0];
+        if (resourceType ==='publication') {
+          pubType = type_list[1];
+        }
+        if (resourceType === 'image') {
+          imgType = type_list[1];
+        }
+      }
+
       const metadata = {
         metadata: {
           title: `${DataTitle}`,
-          upload_type: 'dataset',
+          upload_type: `${resourceType}`,
+          publication_type: pubType || '',
+          image_type: imgType || '',
           description: dataset.notes || 'No description provided',
           creators: [{ name: dataset.author || 'GeoEcomar', affiliation: dataset.organization.name || '' }],
           access_right: this._GetAccessRights(dataset),
@@ -119,6 +136,50 @@ ckan.module('get-doi', function ($, _) {
       }
     },
 
+    _addResourceType: async function(type, dataset) {
+      const ckanApiUrl = '/api/3/action/package_update';
+      dataset.extras = dataset.extras || [];
+
+      // Check if the DOI already exists in the dataset
+      let found = false;
+      for (let extra of dataset.extras) {
+        if (extra.key === `resource_type`) {
+          extra.value = type;
+          found = true;
+          break;
+        }
+      }
+      if (!found) {
+        dataset.extras.push({ key: `resource_type`, value: type });
+      }
+
+      // Remove forbidden fields from the dataset object
+      const forbidden = [
+        'tracking_summary', 'num_resources', 'num_tags',
+        'metadata_modified', 'metadata_created', 'isopen', 'revision_id',
+        'state', 'relationships_as_object', 'relationships_as_subject'
+      ];
+      for (const k of forbidden) delete dataset[k];
+
+      // Add CSRF token for security and because CKAN requires it
+      const csrf_value = $('meta[name=_csrf_token]').attr('content');
+      const updateResp = await fetch(ckanApiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': window.CKAN_TOKEN,
+          'X-CSRF-Token': csrf_value,
+        },
+        body: JSON.stringify(dataset)
+      });
+      if (!updateResp.ok) {
+        console.log('Failed to update dataset with DOI');
+      } else {
+        console.log('DOI saved to dataset!');
+      }
+    },
+
     _DoiInDataset: function(dataset) {
       for (let extra of dataset.extras) {
         if (extra.key === `doi`) {
@@ -142,8 +203,17 @@ ckan.module('get-doi', function ($, _) {
       event.preventDefault(); // Important for preventing default form submission
       const $form = this.el.closest('form');
       const fileInput = $form.find('input[type="file"]')[0];
-      const radio_resp = window.RADIO_RESP;
-      console.log('Want DOI:', radio_resp);
+
+      const radio_resp = window.localStorage.getItem('want_doi') || 'no'; // Default to 'no' if not set
+      const resourceType = window.localStorage.getItem('resource_type') || 'other'; // Default to 'other' if not set
+      
+      const DataTitle = window.CKAN_PACKAGE_NAME;
+      const getResp = await fetch(`/api/3/action/package_show?id=${DataTitle}`);
+      const dataset = (await getResp.json()).result; // Get the dataset object from ckan
+
+
+
+      this._addResourceType(resourceType, dataset); // Add resource type to the dataset
 
       // Mandatory because CKAN won't submit the form without a save input
       if ($form.find('input[name="save"]').length === 0) {
@@ -156,10 +226,7 @@ ckan.module('get-doi', function ($, _) {
       if (radio_resp == 'yes') {
         if (fileInput && fileInput.files.length > 0) {
           const file = fileInput.files[0];
-          const DataTitle = window.CKAN_PACKAGE_NAME;
           try {
-            const getResp = await fetch(`/api/3/action/package_show?id=${DataTitle}`);
-            const dataset = (await getResp.json()).result; // Get the dataset object from ckan
             if (this._DoiInDataset(dataset)) {
               console.log('This dataset already has a DOI.');
               $form.submit();
@@ -179,6 +246,9 @@ ckan.module('get-doi', function ($, _) {
           alert('Please select a file to upload.');
           return;
         }
+
+        window.localStorage.removeItem('want_doi'); // Clear the local storage item after use
+        window.localStorage.removeItem('resource_type'); // Clear the resource type after use
       } else {
         $form.submit();
       }

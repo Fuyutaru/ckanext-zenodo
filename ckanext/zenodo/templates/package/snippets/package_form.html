@@ -3,10 +3,11 @@
 
 {# This provides a full page that renders a form for adding a dataset. It can
 then itself be extended to add/remove blocks of functionality. #}
-<form id="dataset-edit" class="dataset-form" method="post" action="{{ action }}" data-module="basic-form doi-radio" novalidate>
+<form id="dataset-edit" class="dataset-form" method="post" action="{{ action }}" data-module="basic-form doi-radio"
+  novalidate>
   {{ h.csrf_input() }}
   {% block stages %}
-    {{ h.snippet('package/snippets/stages.html', stages=stage, dataset_type=dataset_type) }}
+  {{ h.snippet('package/snippets/stages.html', stages=stage, dataset_type=dataset_type) }}
   {% endblock %}
 
   <input type="hidden" name="_ckan_phase" value="dataset_new_1" />
@@ -16,43 +17,36 @@ then itself be extended to add/remove blocks of functionality. #}
 
 
   {% block radio %}
-    <!-- Radio button for Doi -->
-    <div class="form-group">
-      <label>{{ _('Do you want a DOI for this dataset?') }}</label><br>
-      <label class="radio-inline">
-        <input type="radio" id="doi-yes" name="want_doi" value="yes" > {{ _('Yes') }}
-      </label>
-      <label class="radio-inline">
-        <input type="radio" id="doi-no" name="want_doi" value="no" checked> {{ _('No') }}
-      </label>
-    </div>
+  <!-- Radio button for Doi -->
+  <div class="form-group">
+    <label>{{ _('Do you want a DOI for this dataset?') }}</label><br>
+    <label class="radio-inline">
+      <input type="radio" id="doi-yes" name="want_doi" value="yes"> {{ _('Yes') }}
+    </label>
+    <label class="radio-inline">
+      <input type="radio" id="doi-no" name="want_doi" value="no" checked> {{ _('No') }}
+    </label>
+  </div>
   {% endblock %}
 
-  
+
 
 
   {% block basic_fields %}
-    {% snippet 'package/snippets/package_basic_fields.html', data=data, errors=errors %}
+  {% snippet 'package/snippets/package_basic_fields.html', data=data, errors=errors %}
   {% endblock %}
 
   <div class="form-group control-full">
     {% set error = errors.resource_type %}
     <label class="form-label" for="field-resource-type">{{ _('Resource Type') }}</label>
     <div class="controls">
-      <select id="field-resource-type" name="resource_type" data-module="autocomplete">
+      <select id="field-resource-type" name="resource_type" data-module="autocomplete resource-type">
         {% set existing_resource_type = request.form.get('resource_type', data.get('resource_type')) %}
         {% set empty_resource_type = _('Please select the resource type') %}
         <option value="">{{ empty_resource_type }}</option>
-        <option value="publication" {% if existing_resource_type == 'publication' %}selected="selected"{% endif %}>{{ _('Publication') }}</option>
-        <option value="poster" {% if existing_resource_type == 'poster' %}selected="selected"{% endif %}>{{ _('Poster') }}</option>
-        <option value="presentation" {% if existing_resource_type == 'presentation' %}selected="selected"{% endif %}>{{ _('Presentation') }}</option>
-        <option value="dataset" {% if existing_resource_type == 'dataset' %}selected="selected"{% endif %}>{{ _('Dataset') }}</option>
-        <option value="image" {% if existing_resource_type == 'image' %}selected="selected"{% endif %}>{{ _('Image') }}</option>
-        <option value="video" {% if existing_resource_type == 'video' %}selected="selected"{% endif %}>{{ _('Video/Audio') }}</option>
-        <option value="software" {% if existing_resource_type == 'software' %}selected="selected"{% endif %}>{{ _('Software') }}</option>
-        <option value="lesson" {% if existing_resource_type == 'lesson' %}selected="selected"{% endif %}>{{ _('Lesson') }}</option>
-        <option value="physicalobject" {% if existing_resource_type == 'physicalobject' %}selected="selected"{% endif %}>{{ _('Physical object') }}</option>
-        <option value="other" {% if existing_resource_type == 'other' %}selected="selected"{% endif %}>{{ _('Other') }}</option>
+        {% for type in h.get_resource_types() %}
+          <option value="{{ type.value }}" {% if existing_resource_type == type.value %}selected="selected"{% endif %}>{{ _(type.label) }}</option>
+        {% endfor %}
       </select>
       {% if error %}<span class="error-block">{{ error }}</span>{% endif %}
       <span class="info-block">
@@ -63,31 +57,38 @@ then itself be extended to add/remove blocks of functionality. #}
   </div>
 
   {% block metadata_fields %}
-    {% snippet 'package/snippets/package_metadata_fields.html', data=data, errors=errors %}
+  {% snippet 'package/snippets/package_metadata_fields.html', data=data, errors=errors %}
   {% endblock %}
 
   {% block form_actions %}
-    <div class="form-actions">
-      {% block disclaimer %}
-        <p class="action-info small">
-          {%- trans -%}
-          The <i>data license</i> you select above only applies to the contents
-          of any resource files that you add to this dataset. By submitting
-          this form, you agree to release the <i>metadata</i> values that you
-          enter into the form under the
-          <a href="http://opendatacommons.org/licenses/odbl/1-0/">Open Database License</a>.
-          {%- endtrans -%}
-        </p>
-      {% endblock %}
-      {% block delete_button %}
-        {% if h.check_access('package_delete', {'id': data.id}) and not data.state == 'deleted' %}
-          <a class="btn btn-danger pull-left" href="{% url_for dataset_type ~ '.delete', id=data.id %}" data-module="confirm-action" data-module-content="{{ h.humanize_entity_type('package', dataset_type, 'delete confirmation') or _('Are you sure you want to delete this dataset?') }}">{% block delete_button_text %}{{ _('Delete') }}{% endblock %}</a>
-        {% endif %}
-      {% endblock %}
-      {% block save_button %}
-        <button class="btn btn-primary" type="submit" name="save">{% block save_button_text %}{{ _('Next: Add Data') }}{% endblock %}</button>
-      {% endblock %}
-      {{ form.required_message() }}
-    </div>
+  <div class="form-actions">
+    {% block disclaimer %}
+    <p class="action-info small">
+      {%- trans -%}
+      The <i>data license</i> you select above only applies to the contents
+      of any resource files that you add to this dataset. By submitting
+      this form, you agree to release the <i>metadata</i> values that you
+      enter into the form under the
+      <a href="http://opendatacommons.org/licenses/odbl/1-0/">Open Database License</a>.
+      {%- endtrans -%}
+    </p>
+    {% endblock %}
+    {% block delete_button %}
+    {% if h.check_access('package_delete', {'id': data.id}) and not data.state == 'deleted' %}
+    <a class="btn btn-danger pull-left" href="{% url_for dataset_type ~ '.delete', id=data.id %}"
+      data-module="confirm-action"
+      data-module-content="{{ h.humanize_entity_type('package', dataset_type, 'delete confirmation') or _('Are you sure you want to delete this dataset?') }}">{%
+      block delete_button_text %}{{ _('Delete') }}{% endblock %}</a>
+    {% endif %}
+    {% endblock %}
+    {% block save_button %}
+    <button class="btn btn-primary" type="submit" name="save">{% block save_button_text %}{{ _('Next: Add Data') }}{%
+      endblock %}</button>
+    {% endblock %}
+    {{ form.required_message() }}
+  </div>
   {% endblock %}
+  <script>
+    window.CKAN_PACKAGE_NAME = "{{ data.id|e }}";
+  </script>
 </form>

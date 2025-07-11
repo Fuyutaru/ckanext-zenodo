@@ -1,6 +1,8 @@
 from ckan.common import CKANConfig
 import ckan.plugins as plugins
 import ckan.plugins.toolkit as toolkit
+import json
+import os
 
 # import ckanext.zenodo.cli as cli
 import ckanext.zenodo.helpers as helpers
@@ -25,32 +27,38 @@ class ZenodoPlugin(plugins.SingletonPlugin, toolkit.DefaultDatasetForm):
         return {
             'get_zenodo_token': helpers.get_zenodo_token,
             'get_ckan_token': helpers.get_ckan_token,
+            'get_resource_types': self.get_resource_types,
         }
-    
-    def create_package_schema(self):
-        schema = super(ZenodoPlugin, self).create_package_schema()
-        schema['resource_type'] = [
-            toolkit.get_validator('ignore_missing'),
-            toolkit.get_validator('unicode')
-        ]
-        return schema
 
-    def update_package_schema(self):
-        schema = super(ZenodoPlugin, self).update_package_schema()
-        schema['resource_type'] = [
-            toolkit.get_validator('ignore_missing'),
-            toolkit.get_validator('unicode')
-        ]
-        return schema
+    def get_resource_types(self):
+        resource_types_path = os.path.join(os.path.dirname(__file__), 'config', 'resource_types.json')
+        with open(resource_types_path, 'r', encoding='utf-8') as f:
+            return json.load(f)
 
-    def show_package_schema(self):
-        schema = super(ZenodoPlugin, self).show_package_schema()
-        schema['resource_type'] = [
-            toolkit.get_validator('ignore_missing'),
-            toolkit.get_validator('unicode')
-        ]
-        return schema
+    # def create_package_schema(self):
+    #     schema = super(ZenodoPlugin, self).create_package_schema()
+    #     schema['resource_type'] = [
+    #         toolkit.get_validator('ignore_missing'),
+    #         toolkit.get_validator('unicode')
+    #     ]
+    #     return schema
 
-    
+    # def update_package_schema(self):
+    #     schema = super(ZenodoPlugin, self).update_package_schema()
+    #     schema['resource_type'] = [
+    #         toolkit.get_validator('ignore_missing'),
+    #         toolkit.get_validator('unicode')
+    #     ]
+    #     return schema
+
+    # def show_package_schema(self):
+    #     schema = super(ZenodoPlugin, self).show_package_schema()
+    #     schema['resource_type'] = [
+    #         toolkit.get_validator('ignore_missing'),
+    #         toolkit.get_validator('unicode')
+    #     ]
+    #     return schema
+
+
 
 
