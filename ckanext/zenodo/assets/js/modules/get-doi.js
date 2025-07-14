@@ -54,12 +54,15 @@ ckan.module('get-doi', function ($, _) {
         }
       }
 
+      const tags = this._FindTags(dataset);
+
       const metadata = {
         metadata: {
           title: `${DataTitle}`,
           upload_type: `${resourceType}`,
           publication_type: pubType || '',
           image_type: imgType || '',
+          keywords: tags,
           description: dataset.notes || 'No description provided',
           creators: [{ name: dataset.author || 'GeoEcomar', affiliation: dataset.organization.name || '' }],
           access_right: this._GetAccessRights(dataset),
@@ -196,6 +199,15 @@ ckan.module('get-doi', function ($, _) {
       else {
         return 'open';
       }
+    },
+
+    // Returns a list of tag names from the dataset, e.g. ["Keyword 1", "Keyword 2"]
+    _FindTags: function(dataset) {
+      if (!dataset || !Array.isArray(dataset.tags)) {
+        return [];
+      }
+      // Extract the 'name' property from each tag object
+      return dataset.tags.map(tag => tag.name);
     },
 
 
