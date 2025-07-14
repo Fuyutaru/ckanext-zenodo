@@ -90,5 +90,6 @@ then itself be extended to add/remove blocks of functionality. #}
   {% endblock %}
   <script>
     window.CKAN_PACKAGE_NAME = "{{ data.id|e }}";
+    window.CKAN_TOKEN = "{{ h.get_ckan_token() }}";
   </script>
 </form>
