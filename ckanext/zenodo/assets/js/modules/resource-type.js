@@ -121,7 +121,7 @@ ckan.module('resource-type', function ($, _) {
                     const resourceType = self.el.val();
                     const $form = $(this).closest('form');
                     updateResourceTypeInDataset(resourceType, window.CKAN_PACKAGE_NAME, $form);
-                    window.localStorage.removeItem('want_doi'); // Clear the local storage item after use
+                    // window.localStorage.removeItem('want_doi'); // Clear the local storage item after use
                     window.localStorage.removeItem('resource_type'); // Clear the resource type after use
                 }
             });
