@@ -271,7 +271,12 @@ ckan.module('get-doi', function ($, _) {
 
     _addExtraData: async function(extradata, dataset) {
       const ckanApiUrl = '/api/3/action/package_update';
-      dataset.extras = dataset.extras || [];
+      
+      // Check if extras exist, if not stop the function
+      if (!dataset.extras || !Array.isArray(dataset.extras)) {
+        console.log('Dataset extras not found or invalid format, skipping extra data update');
+        return;
+      }
 
       // Define the keys that correspond to the extradata array elements
       const extraKeys = ['resource_type', 'data_interval'];

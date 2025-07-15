@@ -20,50 +20,66 @@ ckan.module('data-interval', function ($, _) {
                 storeDataInterval(value);
             }
 
-            // Update data_intervalle in CKAN dataset extras and optionally submit the form
-            async function updateDataIntervalInDataset(dataInterval, packageName, $form) {
-                // Fetch dataset
-                const getResp = await fetch(`/api/3/action/package_show?id=${packageName}`);
-                const dataset = (await getResp.json()).result;
-                dataset.extras = dataset.extras || [];
-
-                // Update or add data_intervalle in extras
+            // Update data_interval in hidden custom field and optionally submit the form
+            function updateDataIntervalInDataset(dataInterval, packageName, $form) {
+                // Find the hidden input field for data_interval in the form
                 let found = false;
-                for (let extra of dataset.extras) {
-                    if (extra.key === 'data_interval') {
-                        extra.value = dataInterval;
-                        found = true;
-                        break;
+                $form.find('input[type="hidden"]').each(function() {
+                    const $keyInput = $(this);
+                    if ($keyInput.attr('name') && $keyInput.attr('name').includes('key') && $keyInput.val() === 'data_interval') {
+                        // Found the key input, now find the corresponding value input
+                        const keyName = $keyInput.attr('name');
+                        const valueName = keyName.replace('key', 'value');
+                        const $valueInput = $form.find(`input[name="${valueName}"]`);
+                        if ($valueInput.length > 0) {
+                            $valueInput.val(dataInterval);
+                            found = true;
+                            console.log('Data interval updated in hidden field:', dataInterval);
+                            return false; // Break out of the each loop
+                        }
                     }
-                }
-                if (!found) {
-                    dataset.extras.push({ key: 'data_interval', value: dataInterval });
-                }
-
-                // Remove forbidden fields
-                const forbidden = [
-                    'tracking_summary', 'num_resources', 'num_tags',
-                    'metadata_modified', 'metadata_created', 'isopen', 'revision_id',
-                    'state', 'relationships_as_object', 'relationships_as_subject'
-                ];
-                forbidden.forEach(k => delete dataset[k]);
-
-                // Add CSRF token for security
-                const csrf_value = $('meta[name=_csrf_token]').attr('content');
-                const updateResp = await fetch('/api/3/action/package_update', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json',
-                        'Authorization': window.CKAN_TOKEN,
-                        'X-CSRF-Token': csrf_value,
-                    },
-                    body: JSON.stringify(dataset)
                 });
-                if (!updateResp.ok) {
-                    console.log('Failed to update data_interval in extras');
-                } else {
-                    console.log('Data interval saved to dataset!');
+
+                // If not found, add new hidden fields for data_interval
+                if (!found) {
+                    // Find the highest extras index to append new fields
+                    let highestIndex = -1;
+                    $form.find('input').each(function() {
+                        const name = $(this).attr('name');
+                        if (name && name.startsWith('extras__') && (name.includes('__key') || name.includes('__value') || name.includes('__deleted'))) {
+                            const match = name.match(/extras__(\d+)__/);
+                            if (match) {
+                                const index = parseInt(match[1]);
+                                if (index > highestIndex) {
+                                    highestIndex = index;
+                                }
+                            }
+                        }
+                    });
+
+                    const newIndex = highestIndex + 1;
+                    const prefix = `extras__${newIndex}__`;
+                    
+                    // Add hidden fields for the new data_interval extra
+                    $('<input>').attr({
+                        type: 'hidden',
+                        name: prefix + 'key',
+                        value: 'data_interval'
+                    }).appendTo($form);
+                    
+                    $('<input>').attr({
+                        type: 'hidden',
+                        name: prefix + 'value',
+                        value: dataInterval
+                    }).appendTo($form);
+                    
+                    $('<input>').attr({
+                        type: 'hidden',
+                        name: prefix + 'deleted',
+                        value: ''
+                    }).appendTo($form);
+                    
+                    console.log('Data interval added as new hidden field:', dataInterval);
                 }
 
                 // If form element is provided, submit after update

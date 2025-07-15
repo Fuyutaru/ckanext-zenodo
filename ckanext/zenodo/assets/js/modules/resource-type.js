@@ -26,50 +26,66 @@ ckan.module('resource-type', function ($, _) {
                 storeResourceType(value);
             }
 
-            // Update resource_type in CKAN dataset extras and optionally submit the form
-            async function updateResourceTypeInDataset(resourceType, packageName, $form) {
-                // Fetch dataset
-                const getResp = await fetch(`/api/3/action/package_show?id=${packageName}`);
-                const dataset = (await getResp.json()).result;
-                dataset.extras = dataset.extras || [];
-
-                // Update or add resource_type in extras
+            // Update resource_type in hidden custom field and optionally submit the form
+            function updateResourceTypeInDataset(resourceType, packageName, $form) {
+                // Find the hidden input field for resource_type in the form
                 let found = false;
-                for (let extra of dataset.extras) {
-                    if (extra.key === 'resource_type') {
-                        extra.value = resourceType;
-                        found = true;
-                        break;
+                $form.find('input[type="hidden"]').each(function() {
+                    const $keyInput = $(this);
+                    if ($keyInput.attr('name') && $keyInput.attr('name').includes('key') && $keyInput.val() === 'resource_type') {
+                        // Found the key input, now find the corresponding value input
+                        const keyName = $keyInput.attr('name');
+                        const valueName = keyName.replace('key', 'value');
+                        const $valueInput = $form.find(`input[name="${valueName}"]`);
+                        if ($valueInput.length > 0) {
+                            $valueInput.val(resourceType);
+                            found = true;
+                            console.log('Resource type updated in hidden field:', resourceType);
+                            return false; // Break out of the each loop
+                        }
                     }
-                }
-                if (!found) {
-                    dataset.extras.push({ key: 'resource_type', value: resourceType });
-                }
-
-                // Remove forbidden fields
-                const forbidden = [
-                    'tracking_summary', 'num_resources', 'num_tags',
-                    'metadata_modified', 'metadata_created', 'isopen', 'revision_id',
-                    'state', 'relationships_as_object', 'relationships_as_subject'
-                ];
-                forbidden.forEach(k => delete dataset[k]);
-
-                // Add CSRF token for security
-                const csrf_value = $('meta[name=_csrf_token]').attr('content');
-                const updateResp = await fetch('/api/3/action/package_update', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json',
-                        'Authorization': window.CKAN_TOKEN,
-                        'X-CSRF-Token': csrf_value,
-                    },
-                    body: JSON.stringify(dataset)
                 });
-                if (!updateResp.ok) {
-                    console.log('Failed to update resource_type in extras');
-                } else {
-                    console.log('Resource type saved to dataset!');
+
+                // If not found, add new hidden fields for resource_type
+                if (!found) {
+                    // Find the highest extras index to append new fields
+                    let highestIndex = -1;
+                    $form.find('input').each(function() {
+                        const name = $(this).attr('name');
+                        if (name && name.startsWith('extras__') && (name.includes('__key') || name.includes('__value') || name.includes('__deleted'))) {
+                            const match = name.match(/extras__(\d+)__/);
+                            if (match) {
+                                const index = parseInt(match[1]);
+                                if (index > highestIndex) {
+                                    highestIndex = index;
+                                }
+                            }
+                        }
+                    });
+
+                    const newIndex = highestIndex + 1;
+                    const prefix = `extras__${newIndex}__`;
+                    
+                    // Add hidden fields for the new resource_type extra
+                    $('<input>').attr({
+                        type: 'hidden',
+                        name: prefix + 'key',
+                        value: 'resource_type'
+                    }).appendTo($form);
+                    
+                    $('<input>').attr({
+                        type: 'hidden',
+                        name: prefix + 'value',
+                        value: resourceType
+                    }).appendTo($form);
+                    
+                    $('<input>').attr({
+                        type: 'hidden',
+                        name: prefix + 'deleted',
+                        value: ''
+                    }).appendTo($form);
+                    
+                    console.log('Resource type added as new hidden field:', resourceType);
                 }
 
                 // If form element is provided, submit after update
