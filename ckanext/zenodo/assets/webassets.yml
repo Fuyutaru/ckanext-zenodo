@@ -3,5 +3,6 @@ zenodo:
     - js/modules/get-doi.js       # relative to assets/
     - js/modules/doi-radio.js      # relative to assets/
     - js/modules/resource-type.js  # relative to assets/
+    - js/modules/data-interval.js  # relative to assets/
   filters: rjsmin                 # optional in dev, nice in prod
   output: zenodo/%(version)s_zenodo.js

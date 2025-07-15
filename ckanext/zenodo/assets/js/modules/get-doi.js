@@ -7,6 +7,7 @@ ckan.module('get-doi', function ($, _) {
     // Helper function to prepare metadata object
     _prepareMetadata: function(dataset, DataTitle) {
       let resourceType = window.localStorage.getItem('resource_type') || 'other';
+      const dataInterval = window.localStorage.getItem('data_interval') ||new Date().toISOString().split('T')[0];
 
       let type_list = resourceType.split('/');
       let pubType = "";
@@ -30,6 +31,7 @@ ckan.module('get-doi', function ($, _) {
           publication_type: pubType || '',
           image_type: imgType || '',
           keywords: tags,
+          publication_date: dataInterval,
           description: dataset.notes || 'No description provided',
           creators: [{ name: dataset.author || 'GeoEcomar', affiliation: dataset.organization.name || '' }],
           access_right: this._GetAccessRights(dataset),
@@ -267,21 +269,34 @@ ckan.module('get-doi', function ($, _) {
       }
     },
 
-    _addResourceType: async function(type, dataset) {
+    _addExtraData: async function(extradata, dataset) {
       const ckanApiUrl = '/api/3/action/package_update';
       dataset.extras = dataset.extras || [];
 
-      // Check if the DOI already exists in the dataset
-      let found = false;
-      for (let extra of dataset.extras) {
-        if (extra.key === `resource_type`) {
-          extra.value = type;
-          found = true;
-          break;
+      // Define the keys that correspond to the extradata array elements
+      const extraKeys = ['resource_type', 'data_interval'];
+      
+      // Process each element in the extradata array
+      for (let i = 0; i < extradata.length && i < extraKeys.length; i++) {
+        const key = extraKeys[i];
+        const value = extradata[i];
+        
+        // Skip empty values
+        if (!value) continue;
+        
+        // Check if this key already exists in the dataset extras
+        let found = false;
+        for (let extra of dataset.extras) {
+          if (extra.key === key) {
+            extra.value = value;
+            found = true;
+            break;
+          }
         }
-      }
-      if (!found) {
-        dataset.extras.push({ key: `resource_type`, value: type });
+        // If not found, add it as a new extra
+        if (!found) {
+          dataset.extras.push({ key: key, value: value });
+        }
       }
 
       // Remove forbidden fields from the dataset object
@@ -346,7 +361,10 @@ ckan.module('get-doi', function ($, _) {
 
       const radio_resp = window.localStorage.getItem('want_doi') || 'no'; // Default to 'no' if not set
       const resourceType = window.localStorage.getItem('resource_type') || 'other'; // Default to 'other' if not set
-      
+      const dataInterval = window.localStorage.getItem('data_interval') || '';
+
+      const extradata = [resourceType, dataInterval]
+
       const DataName = window.CKAN_PACKAGE_NAME;
       const getResp = await fetch(`/api/3/action/package_show?id=${DataName}`);
       const dataset = (await getResp.json()).result; // Get the dataset object from ckan
@@ -354,7 +372,7 @@ ckan.module('get-doi', function ($, _) {
 
 
 
-      this._addResourceType(resourceType, dataset); // Add resource type to the dataset
+      this._addExtraData(extradata, dataset); // Add resource type to the dataset
 
       // Mandatory because CKAN won't submit the form without a save input
       if ($form.find('input[name="save"]').length === 0) {
@@ -392,6 +410,7 @@ ckan.module('get-doi', function ($, _) {
 
         window.localStorage.removeItem('want_doi'); // Clear the local storage item after use
         window.localStorage.removeItem('resource_type'); // Clear the resource type after use
+        window.localStorage.removeItem('data_interval'); // Clear the data interval after use
       } else {
         $form.submit();
       }

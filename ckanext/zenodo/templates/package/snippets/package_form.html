@@ -36,25 +36,41 @@ then itself be extended to add/remove blocks of functionality. #}
   {% snippet 'package/snippets/package_basic_fields.html', data=data, errors=errors %}
   {% endblock %}
 
-  <div class="form-group control-full">
-    {% set error = errors.resource_type %}
-    <label class="form-label" for="field-resource-type">{{ _('Resource Type') }}</label>
-    <div class="controls">
-      <select id="field-resource-type" name="resource_type" data-module="autocomplete resource-type">
-        {% set existing_resource_type = request.form.get('resource_type', data.get('resource_type')) %}
-        {% set empty_resource_type = _('Please select the resource type') %}
-        <option value="">{{ empty_resource_type }}</option>
-        {% for type in h.get_resource_types() %}
-          <option value="{{ type.value }}" {% if existing_resource_type == type.value %}selected="selected"{% endif %}>{{ _(type.label) }}</option>
-        {% endfor %}
-      </select>
-      {% if error %}<span class="error-block">{{ error }}</span>{% endif %}
-      <span class="info-block">
-        <i class="fa fa-info-circle"></i>
-        {{ _('Select the type that best describes your resource. This helps users find your dataset more easily.') }}
-      </span>
+  {% block resource_type_field %}
+    <div class="form-group control-full">
+      {% set error = errors.resource_type %}
+      <label class="form-label" for="field-resource-type">{{ _('Resource Type') }}</label>
+      <div class="controls">
+        <select id="field-resource-type" name="resource_type" data-module="autocomplete resource-type">
+          {% set existing_resource_type = request.form.get('resource_type', data.get('resource_type')) %}
+          {% set empty_resource_type = _('Please select the resource type') %}
+          <option value="">{{ empty_resource_type }}</option>
+          {% for type in h.get_resource_types() %}
+            <option value="{{ type.value }}" {% if existing_resource_type == type.value %}selected="selected"{% endif %}>{{ _(type.label) }}</option>
+          {% endfor %}
+        </select>
+        {% if error %}<span class="error-block">{{ error }}</span>{% endif %}
+        <span class="info-block">
+          <i class="fa fa-info-circle"></i>
+          {{ _('Select the type that best describes your resource. This helps users find your dataset more easily.') }}
+        </span>
+      </div>
     </div>
-  </div>
+  {% endblock %}
+
+  {% block data_interval %}
+    <div class="form-group control-full">
+      <label class="form-label" for="field-data-interval">{{ _('Data Interval') }}</label>
+      <div class="controls">
+        <input type="text" id="field-data-interval" name="data_interval" value="{{ request.form.get('data_interval', data.get('data_interval', '')) }}" class="form-control" data-module="data-interval" placeholder="{{ _('YYYY-MM-DD/YYYY-MM-DD. MM and DD are optional.') }}">
+        {% if errors.data_interval %}<span class="error-block">{{ errors.data_interval }}</span>{% endif %}
+        <span class="info-block">
+          <i class="fa fa-info-circle"></i>
+          {{ _('Specify the time interval covered by the dataset (e.g. 2020/2024).') }}
+        </span>
+      </div>
+    </div>
+  {% endblock %}
 
   {% block metadata_fields %}
   {% snippet 'package/snippets/package_metadata_fields.html', data=data, errors=errors %}
