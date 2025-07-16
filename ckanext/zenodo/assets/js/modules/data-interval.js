@@ -102,23 +102,30 @@ ckan.module('data-interval', function ($, _) {
 
             // Set initial value from localStorage or CKAN extras
             const storedValue = window.localStorage.getItem('data_interval');
-            let initialValue = storedValue;
 
-            if (!initialValue && window.CKAN_PACKAGE_NAME) {
-                // Try to fetch from CKAN extras if not in localStorage
+            if (window.CKAN_PACKAGE_NAME) {
+                // Always try to fetch from CKAN extras first
                 fetch(`/api/3/action/package_show?id=${window.CKAN_PACKAGE_NAME}`)
                     .then(resp => resp.json())
                     .then(data => {
+                        let foundValue = null;
                         if (data && data.result && data.result.extras) {
                             const extras = data.result.extras;
                             const found = extras.find(e => e.key === 'data_interval' && e.value);
                             if (found) {
-                                applyDataInterval(found.value);
+                                foundValue = found.value;
                             }
                         }
+                        if (foundValue) {
+                            applyDataInterval(foundValue);
+                        } else if (storedValue) {
+                            applyDataInterval(storedValue);
+                        } else if (self.el.val()) {
+                            storeDataInterval(self.el.val());
+                        }
                     });
-            } else if (initialValue) {
-                applyDataInterval(initialValue);
+            } else if (storedValue) {
+                applyDataInterval(storedValue);
             } else if (self.el.val()) {
                 storeDataInterval(self.el.val());
             }

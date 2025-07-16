@@ -108,23 +108,31 @@ ckan.module('resource-type', function ($, _) {
 
             // Set initial value from localStorage or CKAN extras
             const storedValue = window.localStorage.getItem('resource_type');
-            let initialValue = storedValue;
+            let usedValue = null;
 
-            if (!initialValue && window.CKAN_PACKAGE_NAME) {
-                // Try to fetch from CKAN extras if not in localStorage
+            if (window.CKAN_PACKAGE_NAME) {
+                // Always try to fetch from CKAN extras first
                 fetch(`/api/3/action/package_show?id=${window.CKAN_PACKAGE_NAME}`)
                     .then(resp => resp.json())
                     .then(data => {
+                        let foundValue = null;
                         if (data && data.result && data.result.extras) {
                             const extras = data.result.extras;
                             const found = extras.find(e => e.key === 'resource_type' && e.value);
                             if (found && self.el.find('option[value="' + found.value + '"]').length) {
-                                applyResourceType(found.value);
+                                foundValue = found.value;
                             }
                         }
+                        if (foundValue) {
+                            applyResourceType(foundValue);
+                        } else if (storedValue && self.el.find('option[value="' + storedValue + '"]').length) {
+                            applyResourceType(storedValue);
+                        } else if (self.el.val()) {
+                            storeResourceType(self.el.val());
+                        }
                     });
-            } else if (initialValue && self.el.find('option[value="' + initialValue + '"]').length) {
-                applyResourceType(initialValue);
+            } else if (storedValue && self.el.find('option[value="' + storedValue + '"]').length) {
+                applyResourceType(storedValue);
             } else if (self.el.val()) {
                 storeResourceType(self.el.val());
             }

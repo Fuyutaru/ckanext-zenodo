@@ -160,23 +160,34 @@ ckan.module('contributor', function ($, _) {
 
             // Set initial value from localStorage or CKAN extras
             const storedValue = window.localStorage.getItem('contributor');
-            let initialValue = storedValue;
 
-            if (!initialValue && window.CKAN_PACKAGE_NAME) {
-                // Try to fetch from CKAN extras if not in localStorage
+            if (window.CKAN_PACKAGE_NAME) {
+                // Always try to fetch from CKAN extras first
                 fetch(`/api/3/action/package_show?id=${window.CKAN_PACKAGE_NAME}`)
                     .then(resp => resp.json())
                     .then(data => {
+                        let foundValue = null;
                         if (data && data.result && data.result.extras) {
                             const extras = data.result.extras;
                             const found = extras.find(e => e.key === 'contributor' && e.value);
                             if (found) {
-                                applyContributorData(found.value);
+                                foundValue = found.value;
+                            }
+                        }
+                        if (foundValue) {
+                            applyContributorData(foundValue);
+                        } else if (storedValue) {
+                            applyContributorData(storedValue);
+                        } else {
+                            // Store current state if any fields already have values
+                            const currentData = collectContributorData();
+                            if (currentData) {
+                                storeContributorData(currentData);
                             }
                         }
                     });
-            } else if (initialValue) {
-                applyContributorData(initialValue);
+            } else if (storedValue) {
+                applyContributorData(storedValue);
             } else {
                 // Store current state if any fields already have values
                 const currentData = collectContributorData();

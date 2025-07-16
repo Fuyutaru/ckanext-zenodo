@@ -24,7 +24,22 @@
 
   {% block contributor %}
     <!-- Contributor fields -->
-    {% for i in range(3) %}
+    {% set max_contributors = 20 %} {# arbitrary upper limit to avoid infinite loops #}
+    {% set existing_contributors = [] %}
+    {% for i in range(max_contributors) %}
+      {% set name = data.get('contributor_name_' ~ i) %}
+      {% set role = data.get('contributor_role_' ~ i) %}
+      {% if name or role %}
+        {% do existing_contributors.append(i) %}
+      {% endif %}
+    {% endfor %}
+    {% set num_existing = existing_contributors|length %}
+    {% if num_existing > 0 %}
+      {% set num_fields = num_existing + 1 %}
+    {% else %}
+      {% set num_fields = 1 %}
+    {% endif %}
+    {% for i in range(num_fields) %}
       {% set contributor_name_field = 'contributor_name_' ~ i %}
       {% set contributor_role_field = 'contributor_role_' ~ i %}
       <div class="form-group">
