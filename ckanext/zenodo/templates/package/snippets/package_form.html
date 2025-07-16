@@ -3,7 +3,7 @@
 
 {# This provides a full page that renders a form for adding a dataset. It can
 then itself be extended to add/remove blocks of functionality. #}
-<form id="dataset-edit" class="dataset-form" method="post" action="{{ action }}" data-module="basic-form doi-radio"
+<form id="dataset-edit" class="dataset-form" method="post" action="{{ action }}" data-module="basic-form doi-radio contributor"
   novalidate>
   {{ h.csrf_input() }}
   {% block stages %}

@@ -8,6 +8,23 @@ ckan.module('get-doi', function ($, _) {
     _prepareMetadata: function(dataset, DataTitle) {
       let resourceType = window.localStorage.getItem('resource_type') || 'other';
       const dataInterval = window.localStorage.getItem('data_interval') ||new Date().toISOString().split('T')[0];
+      let contributorData = window.localStorage.getItem('contributor') || '';
+      let contributors = [];
+
+      if (contributorData !== '') {
+        try {
+          // Parse the JSON string to get the array
+          const contributorArray = JSON.parse(contributorData);
+          contributorArray.forEach(element => {
+            const contrib = element.split('/').map(s => s.trim());
+            const name = contrib[0].split(' ').join(',');
+            const role = contrib[1];
+            contributors.push({'name': name, 'type': role});
+          });
+        } catch (e) {
+          console.warn('Failed to parse contributor data:', e);
+        }
+      }
 
       let type_list = resourceType.split('/');
       let pubType = "";
@@ -24,19 +41,27 @@ ckan.module('get-doi', function ($, _) {
 
       const tags = this._FindTags(dataset);
 
-      return {
+      const metadataObj = {
         metadata: {
           title: `${DataTitle}`,
           upload_type: `${resourceType}`,
           publication_type: pubType || '',
           image_type: imgType || '',
           keywords: tags,
+          contributors: contributors,
           publication_date: dataInterval,
           description: dataset.notes || 'No description provided',
           creators: [{ name: dataset.author || 'GeoEcomar', affiliation: dataset.organization.name || '' }],
           access_right: this._GetAccessRights(dataset),
         }
       };
+
+      if (contributorData === '') {
+        delete metadataObj.metadata.contributors;
+      }
+
+
+      return metadataObj;
     },
 
     // Helper function to upload file to bucket
@@ -279,7 +304,7 @@ ckan.module('get-doi', function ($, _) {
       }
 
       // Define the keys that correspond to the extradata array elements
-      const extraKeys = ['resource_type', 'data_interval'];
+      const extraKeys = ['resource_type', 'data_interval', 'contributor'];
       
       // Process each element in the extradata array
       for (let i = 0; i < extradata.length && i < extraKeys.length; i++) {
@@ -367,8 +392,9 @@ ckan.module('get-doi', function ($, _) {
       const radio_resp = window.localStorage.getItem('want_doi') || 'no'; // Default to 'no' if not set
       const resourceType = window.localStorage.getItem('resource_type') || 'other'; // Default to 'other' if not set
       const dataInterval = window.localStorage.getItem('data_interval') || '';
+      const contributor = window.localStorage.getItem('contributor') || '';
 
-      const extradata = [resourceType, dataInterval]
+      const extradata = [resourceType, dataInterval, contributor]
 
       const DataName = window.CKAN_PACKAGE_NAME;
       const getResp = await fetch(`/api/3/action/package_show?id=${DataName}`);
@@ -416,6 +442,7 @@ ckan.module('get-doi', function ($, _) {
         window.localStorage.removeItem('want_doi'); // Clear the local storage item after use
         window.localStorage.removeItem('resource_type'); // Clear the resource type after use
         window.localStorage.removeItem('data_interval'); // Clear the data interval after use
+        window.localStorage.removeItem('contributor'); // Clear the contributor after use
       } else {
         $form.submit();
       }
