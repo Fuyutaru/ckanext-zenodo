@@ -22,6 +22,45 @@
     {{ form.input('maintainer_email', label=_('Maintainer Email'), id='field-maintainer-email', placeholder=_('joe@example.com'), value=data.maintainer_email, error=errors.maintainer_email, classes=['control-medium']) }}
   {% endblock %}
 
+  {% block contributor %}
+    <!-- Contributor fields -->
+    {% for i in range(3) %}
+      {% set contributor_name_field = 'contributor_name_' ~ i %}
+      {% set contributor_role_field = 'contributor_role_' ~ i %}
+      <div class="form-group">
+        <div style="display: flex; gap: 10px;">
+          <div style="flex: 1;">
+            {{ form.input(
+              contributor_name_field,
+              label=_('Contributor Name') if i == 0 else '',
+              id='field-contributor-name-' ~ i,
+              placeholder=_('Enter contributor name'),
+              value=data.get(contributor_name_field, ''),
+              error=errors.get(contributor_name_field),
+              classes=['control-medium']
+            ) }}
+          </div>
+          <div style="flex: 1;">
+            <div class="control-group control-medium">
+              <label class="form-label" for="field-contributor-role-{{ i }}">{% if i == 0 %}{{ _('Role') }}{% endif %}</label>
+              <div class="controls">
+                <select id="field-contributor-role-{{ i }}" name="{{ contributor_role_field }}">
+                  {% set existing_contributor_role = request.form.get(contributor_role_field, data.get(contributor_role_field)) %}
+                  {% set empty_contributor_role = _('Select a role') %}
+                  <option value="">{{ empty_contributor_role }}</option>
+                  {% for role in h.get_contributor_roles() %}
+                    <option value="{{ role.value }}" {% if existing_contributor_role == role.value %}selected="selected"{% endif %}>{{ _(role.label) }}</option>
+                  {% endfor %}
+                </select>
+                {% if errors.get(contributor_role_field) %}<span class="error-block">{{ errors.get(contributor_role_field) }}</span>{% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  {% endblock %}
+
   <!-- set the limit to 1 so there's always only one empty field -->
   {% block package_metadata_fields_custom %}
     {% block custom_fields %}

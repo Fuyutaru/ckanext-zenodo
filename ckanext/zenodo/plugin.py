@@ -28,11 +28,17 @@ class ZenodoPlugin(plugins.SingletonPlugin, toolkit.DefaultDatasetForm):
             'get_zenodo_token': helpers.get_zenodo_token,
             'get_ckan_token': helpers.get_ckan_token,
             'get_resource_types': self.get_resource_types,
+            'get_contributor_roles': self.get_contributor_roles,
         }
 
     def get_resource_types(self):
         resource_types_path = os.path.join(os.path.dirname(__file__), 'config', 'resource_types.json')
         with open(resource_types_path, 'r', encoding='utf-8') as f:
+            return json.load(f)
+
+    def get_contributor_roles(self):
+        contributor_roles_path = os.path.join(os.path.dirname(__file__), 'config', 'contributor_roles.json')
+        with open(contributor_roles_path, 'r', encoding='utf-8') as f:
             return json.load(f)
 
     # def create_package_schema(self):
