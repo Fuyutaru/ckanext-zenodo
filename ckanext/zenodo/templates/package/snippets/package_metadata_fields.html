@@ -26,6 +26,26 @@
     <!-- Contributor fields -->
     {% set max_contributors = 20 %} {# arbitrary upper limit to avoid infinite loops #}
     {% set existing_contributors = [] %}
+
+    {% set extras = data.extras %}
+    {% if extras %}
+      {% for extra in extras %}
+        {% if extra.key == 'contributor' %}
+          {% set contributor = extra.value %}
+          {% if contributor %}
+            {% set contributor = contributor.split(',') %}
+            {% for elt in contributor %}
+              {% do existing_contributors.append(elt) %}
+            {% endfor %}
+            
+          
+          {% endif %}
+        {% endif %}
+      {% endfor %}
+    {% endif %}
+
+    
+
     {% for i in range(max_contributors) %}
       {% set name = data.get('contributor_name_' ~ i) %}
       {% set role = data.get('contributor_role_' ~ i) %}
@@ -33,6 +53,9 @@
         {% do existing_contributors.append(i) %}
       {% endif %}
     {% endfor %}
+
+
+
     {% set num_existing = existing_contributors|length %}
     {% if num_existing > 0 %}
       {% set num_fields = num_existing + 1 %}
