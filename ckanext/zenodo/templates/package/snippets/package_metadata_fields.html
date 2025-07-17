@@ -45,17 +45,6 @@
       {% endfor %}
     {% endif %}
 
-    
-
-    {% for i in range(max_contributors) %}
-      {% set name = data.get('contributor_name_' ~ i) %}
-      {% set role = data.get('contributor_role_' ~ i) %}
-      {% if name or role %}
-        {% do existing_contributors.append(i) %}
-      {% endif %}
-    {% endfor %}
-
-
 
     {% set num_existing = existing_contributors|length %}
     {% if num_existing > 0 %}
