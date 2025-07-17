@@ -5,5 +5,6 @@ zenodo:
     - js/modules/resource-type.js  # relative to assets/
     - js/modules/data-interval.js  # relative to assets/
     - js/modules/contributor.js  # relative to assets/
+    - js/modules/add-contributor.js  # relative to assets/
   filters: rjsmin                 # optional in dev, nice in prod
   output: zenodo/%(version)s_zenodo.js

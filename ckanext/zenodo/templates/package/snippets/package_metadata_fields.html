@@ -23,10 +23,11 @@
   {% endblock %}
 
   {% block contributor %}
-    <!-- Contributor fields -->
+    
     {% set max_contributors = 20 %} {# arbitrary upper limit to avoid infinite loops #}
     {% set existing_contributors = [] %}
 
+    <!-- Search for existing contributor in the extras -->
     {% set extras = data.extras %}
     {% if extras %}
       {% for extra in extras %}
@@ -65,7 +66,7 @@
     {% for i in range(num_fields) %}
       {% set contributor_name_field = 'contributor_name_' ~ i %}
       {% set contributor_role_field = 'contributor_role_' ~ i %}
-      <div class="form-group">
+      <div class="form-group contributor-field-group" data-contributor-index="{{ i }}">
         <div style="display: flex; gap: 10px;">
           <div style="flex: 1;">
             {{ form.input(
@@ -80,7 +81,7 @@
           </div>
           <div style="flex: 1;">
             <div class="control-group control-medium">
-              <label class="form-label" for="field-contributor-role-{{ i }}">{% if i == 0 %}{{ _('Role') }}{% endif %}</label>
+              <label class="form-label" for="field-contributor-role-{{ i }}">{{ _('Role') }}</label>
               <div class="controls">
                 <select id="field-contributor-role-{{ i }}" name="{{ contributor_role_field }}">
                   {% set existing_contributor_role = request.form.get(contributor_role_field, data.get(contributor_role_field)) %}
@@ -94,9 +95,27 @@
               </div>
             </div>
           </div>
+          {% if i > 0 %}
+          <div style="flex: 0 0 auto;">
+            <label class="form-label" style="visibility: hidden;">Remove</label>
+            <div class="controls">
+              <button type="button" class="btn btn-danger btn-sm remove-contributor" 
+                      data-contributor-index="{{ i }}" 
+                      title="{{ _('Remove this contributor') }}">
+                <i class="fa fa-trash"></i>
+              </button>
+            </div>
+          </div>
+          {% endif %}
         </div>
       </div>
     {% endfor %}
+  {% endblock %}
+
+  {% block add_contributor_field_button %}
+    <button type="button" class="btn btn-secondary" id="add-contributor-field" data-module="add-contributor">
+      {{ _('Add Contributor') }}
+    </button>
   {% endblock %}
 
   <!-- set the limit to 1 so there's always only one empty field -->

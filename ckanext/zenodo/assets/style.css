@@ -3,3 +3,38 @@ body {
   border-radius: 0;
 }
 */
+
+/* Contributor field styling */
+.contributor-field-group {
+  margin-bottom: 10px;
+}
+
+/* Align all elements in contributor field rows */
+.contributor-field-group > div[style*="display: flex"] {
+  align-items: flex-end;
+}
+
+/* Ensure consistent width for all contributor name inputs */
+.contributor-field-group input[id^="field-contributor-name-"] {
+  width: 100%;
+}
+
+/* Ensure consistent width for all contributor role selects */
+.contributor-field-group select[id^="field-contributor-role-"] {
+  width: 100%;
+}
+
+/* Ensure proper spacing for remove button controls */
+.contributor-field-group .remove-contributor {
+  margin-bottom: 0;
+}
+
+/* Match the structure of other form controls for remove button */
+.contributor-field-group .controls {
+  margin-top: 5px;
+}
+
+/* Ensure consistent flex behavior for all contributor fields */
+.contributor-field-group .control-group {
+  width: 100%;
+}

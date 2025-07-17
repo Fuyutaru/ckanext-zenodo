@@ -18,10 +18,20 @@ ckan.module('contributor', function ($, _) {
             function collectContributorData() {
                 const contributors = [];
                 
-                // Loop through the 3 contributor fields (0, 1, 2)
-                for (let i = 0; i < 3; i++) {
+                // Loop through all contributor fields dynamically
+                let i = 0;
+                while (true) {
                     const nameField = $(`#field-contributor-name-${i}`);
                     const roleField = $(`#field-contributor-role-${i}`);
+                    
+                    // Break if no more fields exist
+                    if (nameField.length === 0) break;
+                    
+                    // Skip if field is disabled (marked for deletion)
+                    if (nameField.is(':disabled')) {
+                        i++;
+                        continue;
+                    }
                     
                     const name = nameField.val() ? nameField.val().trim() : '';
                     const role = roleField.val() ? roleField.val().trim() : '';
@@ -30,6 +40,8 @@ ckan.module('contributor', function ($, _) {
                     if (name && role) {
                         contributors.push(`${name} / ${role}`);
                     }
+                    
+                    i++;
                 }
                 
                 return contributors.length > 0 ? JSON.stringify(contributors) : '';
@@ -44,14 +56,18 @@ ckan.module('contributor', function ($, _) {
                     const contributors = JSON.parse(value);
                     
                     contributors.forEach((contributor, index) => {
-                        if (index < 3) { // Only apply to the 3 available fields
-                            const parts = contributor.split(' / ');
-                            if (parts.length === 2) {
-                                const name = parts[0].trim();
-                                const role = parts[1].trim();
-                                
-                                $(`#field-contributor-name-${index}`).val(name);
-                                $(`#field-contributor-role-${index}`).val(role);
+                        const parts = contributor.split(' / ');
+                        if (parts.length === 2) {
+                            const name = parts[0].trim();
+                            const role = parts[1].trim();
+                            
+                            // Check if field exists, if not we may need to trigger the dynamic field creation
+                            let nameField = $(`#field-contributor-name-${index}`);
+                            let roleField = $(`#field-contributor-role-${index}`);
+                            
+                            if (nameField.length > 0 && roleField.length > 0) {
+                                nameField.val(name);
+                                roleField.val(role);
                             }
                         }
                     });
@@ -61,14 +77,17 @@ ckan.module('contributor', function ($, _) {
                     const contributors = value.split('; ');
                     
                     contributors.forEach((contributor, index) => {
-                        if (index < 3) {
-                            const parts = contributor.split(' / ');
-                            if (parts.length === 2) {
-                                const name = parts[0].trim();
-                                const role = parts[1].trim();
-                                
-                                $(`#field-contributor-name-${index}`).val(name);
-                                $(`#field-contributor-role-${index}`).val(role);
+                        const parts = contributor.split(' / ');
+                        if (parts.length === 2) {
+                            const name = parts[0].trim();
+                            const role = parts[1].trim();
+                            
+                            let nameField = $(`#field-contributor-name-${index}`);
+                            let roleField = $(`#field-contributor-role-${index}`);
+                            
+                            if (nameField.length > 0 && roleField.length > 0) {
+                                nameField.val(name);
+                                roleField.val(role);
                             }
                         }
                     });
@@ -152,10 +171,18 @@ ckan.module('contributor', function ($, _) {
                 }
             }
 
-            // Listen for changes in any contributor name or role field
+            // Listen for changes in any contributor name or role field (using event delegation)
             $(document).on('input change', 'input[id^="field-contributor-name-"], select[id^="field-contributor-role-"]', function () {
                 const contributorData = collectContributorData();
                 storeContributorData(contributorData);
+            });
+
+            // Also listen for remove button clicks to update data
+            $(document).on('click', '.remove-contributor', function () {
+                setTimeout(function() {
+                    const contributorData = collectContributorData();
+                    storeContributorData(contributorData);
+                }, 100); // Small delay to allow the field to be disabled first
             });
 
             // Set initial value from localStorage or CKAN extras
