@@ -65,8 +65,9 @@ ckan.module('get-doi', function ($, _) {
     },
 
     // Helper function to upload file to bucket
-    _uploadFileToBucket: async function(bucket_url, file, DataTitle, params) {
-      const uploadUrl = `${bucket_url}/${encodeURIComponent(DataTitle)}?${params}`;
+    _uploadFileToBucket: async function(bucket_url, file, params) {
+      const fileName = file.name; // Use file name if available, fallback to DataTitle
+      const uploadUrl = `${bucket_url}/${encodeURIComponent(fileName)}?${params}`;
         
       const uploadResp = await fetch(uploadUrl, {
         method: 'PUT',
@@ -188,7 +189,7 @@ ckan.module('get-doi', function ($, _) {
       
       const newDepositionId = newVersionData.links.latest_draft.split('/').pop();
 
-      // Step 2: Get the new version deposition details to access the bucket
+      // Step 2: Get the new version deposition details
       const newDepositionResponse = await fetch(`${baseUrl}/${newDepositionId}?${params}`, {
         method: 'GET',
         headers: headers
@@ -199,10 +200,13 @@ ckan.module('get-doi', function ($, _) {
       }
       
       const newDepositionData = await newDepositionResponse.json();
-      const bucket_url = newDepositionData.links.bucket;
 
-      // Step 3: Upload the new file to the new version using the new Files API
-      await this._uploadFileToBucket(bucket_url, file, DataTitle, params);
+      // Step 3: Upload new file if provided (optional)
+      if (file) {
+        const bucket_url = newDepositionData.links.bucket;
+        await this._uploadFileToBucket(bucket_url, file, params);
+      }
+      // If no file is provided, the new version will use files from the previous version
 
       // Step 4: Update metadata for the new version
       const metadata = this._prepareMetadata(dataset, DataTitle);
@@ -235,7 +239,7 @@ ckan.module('get-doi', function ($, _) {
       const deposition_id = data.id;
 
       // Step 2: Upload the file
-      await this._uploadFileToBucket(bucket_url, file, DataTitle, params);
+      await this._uploadFileToBucket(bucket_url, file, params);
 
       // Step 3: Add metadata
       const metadata = this._prepareMetadata(dataset, DataTitle);
@@ -414,28 +418,42 @@ ckan.module('get-doi', function ($, _) {
         }).appendTo($form);
       }
       if (radio_resp == 'yes') {
-        if (fileInput && fileInput.files.length > 0) {
-          const file = fileInput.files[0];
-          try {
-            if (this._DoiInDataset(dataset)) {
-              console.log('This dataset already has a DOI.');
-              const doi = await this._createNewVersionZenodoDeposition(file, dataset, DataTitle);
-              await this._addDoiToCkanDataset(doi, dataset);
-              $form.submit();
-              
-            } else {
-              const doi = await this._createAndPublishZenodoDeposition(file, dataset, DataTitle);
-              await this._addDoiToCkanDataset(doi, dataset);
-              console.log('DOI created: ' + doi);
-              $form.submit();
-            }
-          } catch (error) {
-            console.error('Error uploading file to Zenodo:', error);
-            alert('Error uploading file to Zenodo: ' + error.message);
+        const hasFile = fileInput && fileInput.files.length > 0;
+        const hasDoi = this._DoiInDataset(dataset);
+        
+        try {
+          if (hasDoi && hasFile) {
+            // Case 1: DOI exists and new file is uploaded - create new version with new file
+            console.log('This dataset already has a DOI. Creating new version with new file.');
+            const file = fileInput.files[0];
+            const doi = await this._createNewVersionZenodoDeposition(file, dataset, DataTitle);
+            await this._addDoiToCkanDataset(doi, dataset);
+            $form.submit();
+            
+          } else if (hasDoi && !hasFile) {
+            // Case 2: DOI exists but no new file - create new version with old data
+            console.log('This dataset already has a DOI. Creating new version with existing files.');
+            const doi = await this._createNewVersionZenodoDeposition(null, dataset, DataTitle);
+            await this._addDoiToCkanDataset(doi, dataset);
+            $form.submit();
+            
+          } else if (!hasDoi && hasFile) {
+            // Case 3: No DOI and file is uploaded - create first deposit
+            console.log('Creating first Zenodo deposit.');
+            const file = fileInput.files[0];
+            const doi = await this._createAndPublishZenodoDeposition(file, dataset, DataTitle);
+            await this._addDoiToCkanDataset(doi, dataset);
+            console.log('DOI created: ' + doi);
+            $form.submit();
+            
+          } else {
+            // Case 4: No DOI and no file - cannot proceed
+            alert('Please select a file to upload for the first Zenodo deposit.');
             return;
           }
-        } else {
-          alert('Please select a file to upload.');
+        } catch (error) {
+          console.error('Error with Zenodo operation:', error);
+          alert('Error with Zenodo operation: ' + error.message);
           return;
         }
 
