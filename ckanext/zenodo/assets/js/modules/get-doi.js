@@ -121,7 +121,7 @@ ckan.module('get-doi', function ($, _) {
       // Used to pass the access token in the request
       const params = new URLSearchParams({ access_token: ACCESS_TOKEN }).toString();
       // Don't forget to remove the sandbox URL when you are ready to use it in production
-      const baseUrl = 'https://sandbox.zenodo.org/api/deposit/depositions';
+      const baseUrl = 'https://zenodo.org/api/deposit/depositions';
 
       let existingDepositionId = null;
       if (dataset.extras) {
@@ -226,7 +226,7 @@ ckan.module('get-doi', function ($, _) {
       // Used to pass the access token in the request
       const params = new URLSearchParams({ access_token: ACCESS_TOKEN }).toString();
       // Don't forget to remove the sandbox URL when you are ready to use it in production
-      const baseUrl = 'https://sandbox.zenodo.org/api/deposit/depositions';
+      const baseUrl = 'https://zenodo.org/api/deposit/depositions';
 
       // Step 1: Create a deposition
       const response = await fetch(`${baseUrl}?${params}`, {
