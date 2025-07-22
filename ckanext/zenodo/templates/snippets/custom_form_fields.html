@@ -15,7 +15,7 @@ Example:
   {% for extra in extras %}
     {% set prefix = 'extras__%d__' % loop.index0 %}
     <!-- values are in the extra but we don't want to see them -->
-    {% if extra.key in ['doi', 'data_interval', 'resource_type', 'contributor'] %}
+    {% if extra.key in ['doi', 'data_interval', 'resource_type', 'contributor', 'communities'] %}
       {# Hidden fields for doi, data_interval, and resource_type #}
       <input type="hidden" name="{{ prefix }}key" value="{{ extra.key }}" />
       <input type="hidden" name="{{ prefix }}value" value="{{ extra.value }}" />
@@ -35,7 +35,7 @@ Example:
   {% set total_extras = extras|count %}
   {% set hidden_extras_count = 0 %}
   {% for extra in extras %}
-    {% if extra.key in ['doi', 'data_interval', 'resource_type', 'contributor'] %}
+    {% if extra.key in ['doi', 'data_interval', 'resource_type', 'contributor', 'communities'] %}
       {% set hidden_extras_count = hidden_extras_count + 1 %}
     {% endif %}
   {% endfor %}

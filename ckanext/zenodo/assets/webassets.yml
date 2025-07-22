@@ -4,6 +4,7 @@ zenodo:
     - js/modules/doi-radio.js      # relative to assets/
     - js/modules/resource-type.js  # relative to assets/
     - js/modules/data-interval.js  # relative to assets/
+    - js/modules/communities.js    # relative to assets/
     - js/modules/contributor.js  # relative to assets/
     - js/modules/add-contributor.js  # relative to assets/
   filters: rjsmin                 # optional in dev, nice in prod

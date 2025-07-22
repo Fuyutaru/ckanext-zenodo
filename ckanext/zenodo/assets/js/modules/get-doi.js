@@ -10,6 +10,23 @@ ckan.module('get-doi', function ($, _) {
       const dataInterval = window.localStorage.getItem('data_interval') ||new Date().toISOString().split('T')[0];
       let contributorData = window.localStorage.getItem('contributor') || '';
       let contributors = [];
+      let communitydata = window.localStorage.getItem('communities') || '';
+      let communities = [];
+
+      if (communitydata !== '') {
+        try {
+          // Parse the JSON string to get the array
+          const communityArray = JSON.parse(communitydata);
+          communityArray.forEach(element => {
+            // For Zenodo, we only need the identifier
+      
+            communities.push({'identifier': element});
+            
+          });
+        } catch (e) {
+          console.warn('Failed to parse community data:', e);
+        }
+      }
 
       if (contributorData !== '') {
         try {
@@ -49,6 +66,7 @@ ckan.module('get-doi', function ($, _) {
           image_type: imgType || '',
           keywords: tags,
           contributors: contributors,
+          communities: communities,
           publication_date: dataInterval,
           description: dataset.notes || 'No description provided',
           creators: [{ name: dataset.author || 'GeoEcomar', affiliation: dataset.organization.name || '' }],
@@ -58,6 +76,10 @@ ckan.module('get-doi', function ($, _) {
 
       if (contributorData === '') {
         delete metadataObj.metadata.contributors;
+      }
+
+      if (communitydata === '') {
+        delete metadataObj.metadata.communities;
       }
 
 
@@ -308,8 +330,8 @@ ckan.module('get-doi', function ($, _) {
       }
 
       // Define the keys that correspond to the extradata array elements
-      const extraKeys = ['resource_type', 'data_interval', 'contributor'];
-      
+      const extraKeys = ['resource_type', 'data_interval', 'contributor', 'communities'];
+
       // Process each element in the extradata array
       for (let i = 0; i < extradata.length && i < extraKeys.length; i++) {
         const key = extraKeys[i];
@@ -397,8 +419,9 @@ ckan.module('get-doi', function ($, _) {
       const resourceType = window.localStorage.getItem('resource_type') || 'other'; // Default to 'other' if not set
       const dataInterval = window.localStorage.getItem('data_interval') || '';
       const contributor = window.localStorage.getItem('contributor') || '';
+      const communities = window.localStorage.getItem('communities') || '';
 
-      const extradata = [resourceType, dataInterval, contributor]
+      const extradata = [resourceType, dataInterval, contributor, communities]
 
       const DataName = window.CKAN_PACKAGE_NAME;
       const getResp = await fetch(`/api/3/action/package_show?id=${DataName}`);
@@ -461,6 +484,7 @@ ckan.module('get-doi', function ($, _) {
         window.localStorage.removeItem('resource_type'); // Clear the resource type after use
         window.localStorage.removeItem('data_interval'); // Clear the data interval after use
         window.localStorage.removeItem('contributor'); // Clear the contributor after use
+        window.localStorage.removeItem('communities'); // Clear the communities after use
       } else {
         $form.submit();
       }

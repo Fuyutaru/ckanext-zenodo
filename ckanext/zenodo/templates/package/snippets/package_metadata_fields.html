@@ -22,6 +22,21 @@
     {{ form.input('maintainer_email', label=_('Maintainer Email'), id='field-maintainer-email', placeholder=_('joe@example.com'), value=data.maintainer_email, error=errors.maintainer_email, classes=['control-medium']) }}
   {% endblock %}
 
+  {% block communities %}
+    <div class="form-group control-full">
+      <label class="form-label" for="field-communities">{{ _('Communities') }}</label>
+      <div class="controls">
+        <input type="text" id="field-communities" name="communities" value="{{ request.form.get('communities', data.get('communities', '')) }}" class="form-control" placeholder="{{ _('Enter community identifiers') }}" data-module="communities">
+        {% if errors.communities %}<span class="error-block">{{ errors.communities }}</span>{% endif %}
+        <span class="info-block">
+          <i class="fa fa-info-circle"></i>
+          {{ _('Specify the communities associated with the dataset, separated by commas. You only need to provide the community identifiers.') }}
+        </span>
+      </div>
+    </div>
+
+  {% endblock %}
+
   {% block contributor %}
     
     {% set max_contributors = 20 %} {# arbitrary upper limit to avoid infinite loops #}

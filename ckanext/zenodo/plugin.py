@@ -41,29 +41,6 @@ class ZenodoPlugin(plugins.SingletonPlugin, toolkit.DefaultDatasetForm):
         with open(contributor_roles_path, 'r', encoding='utf-8') as f:
             return json.load(f)
 
-    # def create_package_schema(self):
-    #     schema = super(ZenodoPlugin, self).create_package_schema()
-    #     schema['resource_type'] = [
-    #         toolkit.get_validator('ignore_missing'),
-    #         toolkit.get_validator('unicode')
-    #     ]
-    #     return schema
-
-    # def update_package_schema(self):
-    #     schema = super(ZenodoPlugin, self).update_package_schema()
-    #     schema['resource_type'] = [
-    #         toolkit.get_validator('ignore_missing'),
-    #         toolkit.get_validator('unicode')
-    #     ]
-    #     return schema
-
-    # def show_package_schema(self):
-    #     schema = super(ZenodoPlugin, self).show_package_schema()
-    #     schema['resource_type'] = [
-    #         toolkit.get_validator('ignore_missing'),
-    #         toolkit.get_validator('unicode')
-    #     ]
-    #     return schema
 
 
 
