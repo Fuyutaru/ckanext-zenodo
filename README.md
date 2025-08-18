@@ -1,5 +1,3 @@
-[![Tests](https://github.com/geoecomar/ckanext-zenodo/workflows/Tests/badge.svg?branch=main)](https://github.com/geoecomar/ckanext-zenodo/actions)
-
 # ckanext-zenodo
 
 **TODO:** Put a description of your extension here:  What does it do? What features does it have? Consider including some screenshots or embedding a video!
