@@ -35,8 +35,9 @@ ckan.module('get-doi', function ($, _) {
           contributorArray.forEach(element => {
             const contrib = element.split('/').map(s => s.trim());
             const name = contrib[0].split(' ').join(',');
-            const role = contrib[1];
-            contributors.push({'name': name, 'type': role});
+            const affiliation = contrib[1];
+            const role = contrib[2];
+            contributors.push({'name': name, 'affiliation': affiliation, 'type': role});
           });
         } catch (e) {
           console.warn('Failed to parse contributor data:', e);

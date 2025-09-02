@@ -17,56 +17,61 @@ ckan.module('contributor', function ($, _) {
             // Collect all contributor name and role pairs and combine them into JSON array
             function collectContributorData() {
                 const contributors = [];
-                
+
                 // Loop through all contributor fields dynamically
                 let i = 0;
                 while (true) {
                     const nameField = $(`#field-contributor-name-${i}`);
+                    const affiliationField = $(`#field-contributor-affiliation-${i}`);
                     const roleField = $(`#field-contributor-role-${i}`);
-                    
+
                     // Break if no more fields exist
                     if (nameField.length === 0) break;
-                    
+
                     // Skip if field is disabled (marked for deletion)
                     if (nameField.is(':disabled')) {
                         i++;
                         continue;
                     }
-                    
+
                     const name = nameField.val() ? nameField.val().trim() : '';
+                    const affiliation = affiliationField.length ? (affiliationField.val() ? affiliationField.val().trim() : '') : '';
                     const role = roleField.val() ? roleField.val().trim() : '';
-                    
+
                     // Only add if both name and role are provided
                     if (name && role) {
-                        contributors.push(`${name} / ${role}`);
+                        contributors.push(`${name} / ${affiliation} / ${role}`);
                     }
-                    
+
                     i++;
                 }
-                
+
                 return contributors.length > 0 ? JSON.stringify(contributors) : '';
             }
 
             // Apply contributor data from stored JSON array value
             function applyContributorData(value) {
                 if (!value) return;
-                
+
                 try {
                     // Parse the JSON array
                     const contributors = JSON.parse(value);
-                    
+
                     contributors.forEach((contributor, index) => {
                         const parts = contributor.split(' / ');
-                        if (parts.length === 2) {
+                        if (parts.length === 3) {
                             const name = parts[0].trim();
-                            const role = parts[1].trim();
-                            
+                            const affiliation = parts[1].trim();
+                            const role = parts[2].trim();
+
                             // Check if field exists, if not we may need to trigger the dynamic field creation
                             let nameField = $(`#field-contributor-name-${index}`);
+                            let affiliationField = $(`#field-contributor-affiliation-${index}`);
                             let roleField = $(`#field-contributor-role-${index}`);
-                            
-                            if (nameField.length > 0 && roleField.length > 0) {
+
+                            if (nameField.length > 0 && affiliationField.length > 0 && roleField.length > 0) {
                                 nameField.val(name);
+                                affiliationField.val(affiliation);
                                 roleField.val(role);
                             }
                         }
@@ -75,24 +80,27 @@ ckan.module('contributor', function ($, _) {
                     console.warn('Failed to parse contributor data:', e);
                     // Fallback: try to parse as old format (semicolon-separated)
                     const contributors = value.split('; ');
-                    
+
                     contributors.forEach((contributor, index) => {
                         const parts = contributor.split(' / ');
-                        if (parts.length === 2) {
+                        if (parts.length === 3) {
                             const name = parts[0].trim();
-                            const role = parts[1].trim();
-                            
+                            const affiliation = parts[1].trim();
+                            const role = parts[2].trim();
+
                             let nameField = $(`#field-contributor-name-${index}`);
+                            let affiliationField = $(`#field-contributor-affiliation-${index}`);
                             let roleField = $(`#field-contributor-role-${index}`);
-                            
-                            if (nameField.length > 0 && roleField.length > 0) {
+
+                            if (nameField.length > 0 && affiliationField.length > 0 && roleField.length > 0) {
                                 nameField.val(name);
+                                affiliationField.val(affiliation);
                                 roleField.val(role);
                             }
                         }
                     });
                 }
-                
+
                 storeContributorData(value);
             }
 
@@ -100,7 +108,7 @@ ckan.module('contributor', function ($, _) {
             function updateContributorInDataset(contributorData, packageName, $form) {
                 // Find the hidden input field for contributor in the form
                 let found = false;
-                $form.find('input[type="hidden"]').each(function() {
+                $form.find('input[type="hidden"]').each(function () {
                     const $keyInput = $(this);
                     if ($keyInput.attr('name') && $keyInput.attr('name').includes('key') && $keyInput.val() === 'contributor') {
                         // Found the key input, now find the corresponding value input
@@ -120,7 +128,7 @@ ckan.module('contributor', function ($, _) {
                 if (!found) {
                     // Find the highest extras index to append new fields
                     let highestIndex = -1;
-                    $form.find('input').each(function() {
+                    $form.find('input').each(function () {
                         const name = $(this).attr('name');
                         if (name && name.startsWith('extras__') && (name.includes('__key') || name.includes('__value') || name.includes('__deleted'))) {
                             const match = name.match(/extras__(\d+)__/);
@@ -135,26 +143,26 @@ ckan.module('contributor', function ($, _) {
 
                     const newIndex = highestIndex + 1;
                     const prefix = `extras__${newIndex}__`;
-                    
+
                     // Add hidden fields for the new contributor extra
                     $('<input>').attr({
                         type: 'hidden',
                         name: prefix + 'key',
                         value: 'contributor'
                     }).appendTo($form);
-                    
+
                     $('<input>').attr({
                         type: 'hidden',
                         name: prefix + 'value',
                         value: contributorData
                     }).appendTo($form);
-                    
+
                     $('<input>').attr({
                         type: 'hidden',
                         name: prefix + 'deleted',
                         value: ''
                     }).appendTo($form);
-                    
+
                     console.log('Contributor data added as new hidden field:', contributorData);
                 }
 
@@ -172,14 +180,14 @@ ckan.module('contributor', function ($, _) {
             }
 
             // Listen for changes in any contributor name or role field (using event delegation)
-            $(document).on('input change', 'input[id^="field-contributor-name-"], select[id^="field-contributor-role-"]', function () {
+            $(document).on('input change', 'input[id^="field-contributor-name-"], input[id^="field-contributor-affiliation-"], select[id^="field-contributor-role-"]', function () {
                 const contributorData = collectContributorData();
                 storeContributorData(contributorData);
             });
 
             // Also listen for remove button clicks to update data
             $(document).on('click', '.remove-contributor', function () {
-                setTimeout(function() {
+                setTimeout(function () {
                     const contributorData = collectContributorData();
                     storeContributorData(contributorData);
                 }, 100); // Small delay to allow the field to be disabled first
@@ -224,7 +232,7 @@ ckan.module('contributor', function ($, _) {
             }
 
             // Add click event for update dataset button
-            $(document).on('click', 'button[name="save"]', function(e) {
+            $(document).on('click', 'button[name="save"]', function (e) {
                 // Only run if the button text is "Update Dataset"
                 if ($(this).text().trim() === 'Update Dataset' && window.CKAN_PACKAGE_NAME) {
                     e.preventDefault(); // Prevent default form submission
