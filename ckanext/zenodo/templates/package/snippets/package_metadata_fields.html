@@ -16,6 +16,36 @@
     {{ form.input('author_email', label=_('Author Email'), id='field-author-email', placeholder=_('joe@example.com'), value=data.author_email, error=errors.author_email, classes=['control-medium']) }}
   {% endblock %}
 
+  {% block author_roles %}
+    <div class="form-group control-full">
+      <label class="form-label" for="field-author-roles">{{ _('Author Roles') }}</label>
+      <div class="controls">
+        <input type="text" id="field-author-roles" name="author_roles" value="{{ request.form.get('author_roles', data.get('author_roles', '')) }}" class="form-control" placeholder="{{ _('Enter author roles') }}" data-module="author-role">
+        {% if errors.author_roles %}<span class="error-block">{{ errors.author_roles }}</span>{% endif %}
+        <span class="info-block">
+          <i class="fa fa-info-circle"></i>
+          {{ _('Specify the authors\' role. Set them in the same order as the authors and separate with commas. If one author doesn\'t have a role, leave it blank. For example: "Author1 Role, , Author3 Role"') }}
+        </span>
+      </div>
+    </div>
+
+  {% endblock %}
+
+  {% block author_affiliations %}
+    <div class="form-group control-full">
+      <label class="form-label" for="field-author-affiliations">{{ _('Author Affiliations') }}</label>
+      <div class="controls">
+        <input type="text" id="field-author-affiliations" name="author_affiliations" value="{{ request.form.get('author_affiliations', data.get('author_affiliations', '')) }}" class="form-control" placeholder="{{ _('Enter author affiliations') }}" data-module="author-affiliation">
+        {% if errors.author_affiliations %}<span class="error-block">{{ errors.author_affiliations }}</span>{% endif %}
+        <span class="info-block">
+          <i class="fa fa-info-circle"></i>
+          {{ _('Specify the authors\' affiliation. Set them in the same order as the authors and separate with commas. If one author doesn\'t have an affiliation, leave it blank. For example: "Author1 Affiliation, , Author3 Affiliation"') }}
+        </span>
+      </div>
+    </div>
+
+  {% endblock %}
+
   {% block package_metadata_fields_maintainer %}
     {{ form.input('maintainer', label=_('Maintainer'), id='field-maintainer', placeholder=_('Joe Bloggs'), value=data.maintainer, error=errors.maintainer, classes=['control-medium']) }}
 

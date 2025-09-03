@@ -12,6 +12,8 @@ ckan.module('get-doi', function ($, _) {
       let contributors = [];
       let communitydata = window.localStorage.getItem('communities') || '';
       let communities = [];
+      let authorAffiliations = window.localStorage.getItem('author_affiliations') || '';
+      let authorRoles = window.localStorage.getItem('author_roles') || '';
 
       if (communitydata !== '') {
         try {
@@ -59,6 +61,23 @@ ckan.module('get-doi', function ($, _) {
 
       const tags = this._FindTags(dataset);
 
+
+      const authorList = [];
+
+      const authorNameList = dataset.author.split(',').map(name => name.trim().split(' ').join(','));
+      const authorAffiliationList = JSON.parse(authorAffiliations);
+      const authorRoleList = JSON.parse(authorRoles);
+
+      if (authorRoleList.length == authorNameList.length) {
+        for (let i = 0; i < authorNameList.length; i++) {
+          authorList.push({
+            'name': authorNameList[i],
+            'affiliation': authorAffiliationList[i] || '',
+            'type': authorRoleList[i] || ''
+          });
+        }
+      }
+
       const metadataObj = {
         metadata: {
           title: `${DataTitle}`,
@@ -70,7 +89,7 @@ ckan.module('get-doi', function ($, _) {
           communities: communities,
           publication_date: dataInterval,
           description: dataset.notes || 'No description provided',
-          creators: [{ name: dataset.author || 'GeoEcomar', affiliation: dataset.organization.name || '' }],
+          creators: authorList,
           access_right: this._GetAccessRights(dataset),
         }
       };
@@ -331,7 +350,7 @@ ckan.module('get-doi', function ($, _) {
       }
 
       // Define the keys that correspond to the extradata array elements
-      const extraKeys = ['resource_type', 'data_interval', 'contributor', 'communities'];
+      const extraKeys = ['resource_type', 'data_interval', 'contributor', 'communities', 'author_affiliations', 'author_roles'];
 
       // Process each element in the extradata array
       for (let i = 0; i < extradata.length && i < extraKeys.length; i++) {
@@ -421,8 +440,10 @@ ckan.module('get-doi', function ($, _) {
       const dataInterval = window.localStorage.getItem('data_interval') || '';
       const contributor = window.localStorage.getItem('contributor') || '';
       const communities = window.localStorage.getItem('communities') || '';
+      const authorAffiliations = window.localStorage.getItem('author_affiliations') || '';
+      const authorRoles = window.localStorage.getItem('author_roles') || '';
 
-      const extradata = [resourceType, dataInterval, contributor, communities]
+      const extradata = [resourceType, dataInterval, contributor, communities, authorAffiliations, authorRoles]
 
       const DataName = window.CKAN_PACKAGE_NAME;
       const getResp = await fetch(`/api/3/action/package_show?id=${DataName}`);
@@ -486,6 +507,8 @@ ckan.module('get-doi', function ($, _) {
         window.localStorage.removeItem('data_interval'); // Clear the data interval after use
         window.localStorage.removeItem('contributor'); // Clear the contributor after use
         window.localStorage.removeItem('communities'); // Clear the communities after use
+        window.localStorage.removeItem('author_affiliations'); // Clear the author affiliations after use
+        window.localStorage.removeItem('author_roles'); // Clear the author roles after use
       } else {
         $form.submit();
       }

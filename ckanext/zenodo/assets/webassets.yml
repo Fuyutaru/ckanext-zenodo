@@ -7,5 +7,7 @@ zenodo:
     - js/modules/communities.js    # relative to assets/
     - js/modules/contributor.js  # relative to assets/
     - js/modules/add-contributor.js  # relative to assets/
+    - js/modules/author-role.js  # relative to assets/
+    - js/modules/author-affiliation.js  # relative to assets/
   filters: rjsmin                 # optional in dev, nice in prod
   output: zenodo/%(version)s_zenodo.js
