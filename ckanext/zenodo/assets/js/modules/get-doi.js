@@ -15,6 +15,7 @@ ckan.module('get-doi', function ($, _) {
       let authorAffiliations = window.localStorage.getItem('author_affiliations') || '';
       let authorRoles = window.localStorage.getItem('author_roles') || '';
 
+
       if (communitydata !== '') {
         try {
           // Parse the JSON string to get the array
@@ -64,18 +65,39 @@ ckan.module('get-doi', function ($, _) {
 
       const authorList = [];
 
-      const authorNameList = dataset.author.split(',').map(name => name.trim().split(' ').join(','));
-      const authorAffiliationList = JSON.parse(authorAffiliations);
-      const authorRoleList = JSON.parse(authorRoles);
+ 
 
-      if (authorRoleList.length == authorNameList.length) {
+      const authorNameList = dataset.author.split(',').map(name => name.trim().split(' ').join(','));
+
+      let authorAffiliationList = [];
+      let authorRoleList = [];
+
+      if (authorAffiliations !== '') {
+        authorAffiliationList = JSON.parse(authorAffiliations);
+      }
+
+      if (authorRoles !== '') {
+        authorRoleList = JSON.parse(authorRoles);
+      }
+
+
+      if (authorRoleList.length == authorAffiliationList.length && authorAffiliationList.length == authorNameList.length) {
         for (let i = 0; i < authorNameList.length; i++) {
           authorList.push({
             'name': authorNameList[i],
-            'affiliation': authorAffiliationList[i] || '',
+            'affiliation': authorAffiliationList[i] || dataset.organization.name,
             'type': authorRoleList[i] || ''
           });
         }
+      }
+      else{
+        for (let i = 0; i < authorNameList.length; i++) {
+          authorList.push({
+            'name': authorNameList[i],
+            'affiliation': dataset.organization.name,
+          });
+        }
+        
       }
 
       const metadataObj = {
