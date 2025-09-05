@@ -35,7 +35,7 @@ ckan.module('contributor', function ($, _) {
                     }
 
                     const name = nameField.val() ? nameField.val().trim() : '';
-                    const affiliation = affiliationField.length ? (affiliationField.val() ? affiliationField.val().trim() : '') : '';
+                    const affiliation = affiliationField.val() ? affiliationField.val().trim() : '';
                     const role = roleField.val() ? roleField.val().trim() : '';
 
                     // Only add if both name and role are provided

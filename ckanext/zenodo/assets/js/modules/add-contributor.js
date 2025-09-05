@@ -65,6 +65,19 @@ ckan.module('add-contributor', function ($, _) {
                     $roleLabel.text('Role');
                 }
                 
+                // Clear the values and update IDs/names for affiliation field
+                const $affiliationInput = $cloned.find('input[id^="field-contributor-affiliation-"]');
+                $affiliationInput.attr('id', `field-contributor-affiliation-${index}`);
+                $affiliationInput.attr('name', `contributor_affiliation_${index}`);
+                $affiliationInput.val(''); // Clear the value
+
+                // Update the label for affiliation field
+                const $affiliationLabel = $cloned.find('label[for^="field-contributor-affiliation-"]');
+                if ($affiliationLabel.length > 0) {
+                    $affiliationLabel.attr('for', `field-contributor-affiliation-${index}`);
+                    $affiliationLabel.text('Affiliation');
+                }
+                
                 // Update the remove button
                 const $removeBtn = $cloned.find('.remove-contributor');
                 if ($removeBtn.length === 0) {
