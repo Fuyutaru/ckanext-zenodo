@@ -37,7 +37,7 @@ ckan.module('get-doi', function ($, _) {
           const contributorArray = JSON.parse(contributorData);
           contributorArray.forEach(element => {
             const contrib = element.split('/').map(s => s.trim());
-            const name = contrib[0].split(' ').join(',');
+            const name = contrib[0].split(' ').map(name => name.charAt(0).toUpperCase() + name.substring(1).toLowerCase()).join(',');
             const affiliation = contrib[1];
             const role = contrib[2];
             contributors.push({'name': name, 'affiliation': affiliation, 'type': role});
@@ -67,7 +67,7 @@ ckan.module('get-doi', function ($, _) {
 
  
 
-      const authorNameList = dataset.author.split(',').map(name => name.trim().split(' ').join(','));
+      const authorNameList = dataset.author.split(',').map(name => name.trim().split(' ').map(name => name.charAt(0).toUpperCase() + name.substring(1).toLowerCase()).join(','));
 
       let authorAffiliationList = [];
       let authorRoleList = [];
