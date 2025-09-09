@@ -10,7 +10,7 @@ import ckanext.zenodo.helpers as helpers
 # from ckanext.zenodo.logic import (
 #     action, auth, validators
 # )
-
+from ckan.plugins.toolkit import DefaultDatasetForm, get_validator
 
 class ZenodoPlugin(plugins.SingletonPlugin, toolkit.DefaultDatasetForm):
     plugins.implements(plugins.IConfigurer)
@@ -41,7 +41,28 @@ class ZenodoPlugin(plugins.SingletonPlugin, toolkit.DefaultDatasetForm):
         with open(contributor_roles_path, 'r', encoding='utf-8') as f:
             return json.load(f)
 
+    def is_fallback(self):
+        return True
 
+    def package_types(self):
+        return []
+
+    # Internal method to strip email validation
+    def _remove_email_validation(self, schema):
+        schema['author_email'] = [get_validator('ignore_missing')]
+        return schema
+
+    def create_package_schema(self):
+        schema = super(ZenodoPlugin, self).create_package_schema()
+        return self._remove_email_validation(schema)
+
+    def update_package_schema(self):
+        schema = super(ZenodoPlugin, self).update_package_schema()
+        return self._remove_email_validation(schema)
+
+    def show_package_schema(self):
+        schema = super(ZenodoPlugin, self).show_package_schema()
+        return self._remove_email_validation(schema)
 
 
 
