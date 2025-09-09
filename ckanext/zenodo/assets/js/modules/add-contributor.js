@@ -156,6 +156,44 @@ ckan.module('add-contributor', function ($, _) {
                 const index = $(this).data('contributor-index');
                 removeContributorField(index);
             });
+            
+            // Restore contributor fields from localStorage on page load
+            function ensureContributorFields(count) {
+                let currentCount = $('.contributor-field-group').length;
+                while (currentCount < count) {
+                    $('#add-contributor-field').trigger('click');
+                    currentCount = $('.contributor-field-group').length;
+                }
+            }
+
+            function restoreContributorsFromLocalStorage() {
+                const stored = window.localStorage.getItem('contributor');
+                if (!stored) return;
+
+                let contributors = [];
+                try {
+                    contributors = JSON.parse(stored);
+                } catch (e) {
+                    contributors = stored.split('; ');
+                }
+
+                // Ensure enough fields exist
+                ensureContributorFields(contributors.length);
+
+                contributors.forEach(function (contributor, i) {
+                    const parts = contributor.split(' / ');
+                    if (parts.length === 3) {
+                        $(`#field-contributor-name-${i}`).val(parts[0]);
+                        $(`#field-contributor-affiliation-${i}`).val(parts[1]);
+                        $(`#field-contributor-role-${i}`).val(parts[2]);
+                    }
+                });
+            }
+
+            // Only run if contributor fields exist on the page
+            if ($('#add-contributor-field').length > 0) {
+                restoreContributorsFromLocalStorage();
+            }
         }
     };
 });
