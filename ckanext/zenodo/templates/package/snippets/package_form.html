@@ -59,17 +59,29 @@ then itself be extended to add/remove blocks of functionality. #}
   {% endblock %}
 
   {% block data_interval %}
-    <div class="form-group control-full">
-      <label class="form-label" for="field-data-interval">{{ _('Data Interval') }}</label>
-      <div class="controls">
-        <input type="text" id="field-data-interval" name="data_interval" value="{{ request.form.get('data_interval', data.get('data_interval', '')) }}" class="form-control" data-module="data-interval" placeholder="{{ _('YYYY-MM-DD/YYYY-MM-DD. MM and DD are optional.') }}">
-        {% if errors.data_interval %}<span class="error-block">{{ errors.data_interval }}</span>{% endif %}
-        <span class="info-block">
-          <i class="fa fa-info-circle"></i>
-          {{ _('Specify the time interval covered by the dataset in YYYY-MM-DD/YYYY-MM-DD format (e.g. 2020-01-01/2020-12-31). MM and DD are optional.') }}
-        </span>
+  <div class="form-group control-full">
+    <label class="form-label" for="field-data-interval">{{ _('Data Interval') }}</label>
+    <div class="controls">
+      <div style="display: flex; gap: 1em;">
+        <input type="text" id="field-data-interval" name="data_interval"
+               value="{{ request.form.get('data_interval', data.get('data_interval', '')) }}"
+               class="form-control"
+               data-module="data-interval"
+               placeholder="{{ _('YYYY-MM-DD/YYYY-MM-DD. MM and DD are optional.') }}">
+        <select id="field-date-type" name="date_type" class="form-control">
+          <option value="">{{ _('Select date type') }}</option>
+          {% for type in h.get_date_types() %}
+            <option value="{{ type.value }}" {% if request.form.get('date_type', data.get('date_type')) == type.value %}selected{% endif %}>{{ _(type.label) }}</option>
+          {% endfor %}
+        </select>
       </div>
+      {% if errors.data_interval %}<span class="error-block">{{ errors.data_interval }}</span>{% endif %}
+      <span class="info-block">
+        <i class="fa fa-info-circle"></i>
+        {{ _('Specify the time interval covered by the dataset in YYYY-MM-DD/YYYY-MM-DD format (e.g. 2020-01-01/2020-12-31). MM and DD are optional. Also select the date type.') }}
+      </span>
     </div>
+  </div>
   {% endblock %}
 
   {% block metadata_fields %}

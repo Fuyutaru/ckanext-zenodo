@@ -1,0 +1,13 @@
+[
+  {"value": "Accepted", "label": "Accepted"},
+  {"value": "Available", "label": "Available"},
+  {"value": "Collected", "label": "Collected"},
+  {"value": "Copyrighted", "label": "Copyrighted"},
+  {"value": "Created", "label": "Created"},
+  {"value": "Issued", "label": "Issued"},
+  {"value": "Other", "label": "Other"},
+  {"value": "Submitted", "label": "Submitted"},
+  {"value": "Updated", "label": "Updated"},
+  {"value": "Valid", "label": "Valid"},
+  {"value": "Withdrawn", "label": "Withdrawn"}
+]

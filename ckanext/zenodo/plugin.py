@@ -29,6 +29,7 @@ class ZenodoPlugin(plugins.SingletonPlugin, toolkit.DefaultDatasetForm):
             'get_ckan_token': helpers.get_ckan_token,
             'get_resource_types': self.get_resource_types,
             'get_contributor_roles': self.get_contributor_roles,
+            'get_date_types': self.get_date_types,
         }
 
     def get_resource_types(self):
@@ -39,6 +40,11 @@ class ZenodoPlugin(plugins.SingletonPlugin, toolkit.DefaultDatasetForm):
     def get_contributor_roles(self):
         contributor_roles_path = os.path.join(os.path.dirname(__file__), 'config', 'contributor_roles.json')
         with open(contributor_roles_path, 'r', encoding='utf-8') as f:
+            return json.load(f)
+
+    def get_date_types(self):
+        date_type_path = os.path.join(os.path.dirname(__file__), 'config', 'date_type.json')
+        with open(date_type_path, 'r', encoding='utf-8') as f:
             return json.load(f)
 
     def is_fallback(self):

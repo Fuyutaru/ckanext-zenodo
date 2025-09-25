@@ -7,7 +7,7 @@ ckan.module('get-doi', function ($, _) {
     // Helper function to prepare metadata object
     _prepareMetadata: function(dataset, DataTitle) {
       let resourceType = window.localStorage.getItem('resource_type') || 'other';
-      const dataInterval = window.localStorage.getItem('data_interval') ||new Date().toISOString().split('T')[0];
+      const dataInterval = window.localStorage.getItem('data_interval') || '';
       let contributorData = window.localStorage.getItem('contributor') || '';
       let contributors = [];
       let communitydata = window.localStorage.getItem('communities') || '';
@@ -15,6 +15,25 @@ ckan.module('get-doi', function ($, _) {
       let authorAffiliations = window.localStorage.getItem('author_affiliations') || '';
       let authorRoles = window.localStorage.getItem('author_roles') || '';
 
+
+      let dateDico = {};
+
+      if (dataInterval !== '') {
+        try {
+          const intervalList = dataInterval.split(',');
+          const dateInterval = intervalList[0].trim();
+          const startdate = dateInterval.split('/')[0].trim();
+          const enddate = dateInterval.split('/')[1] ? dateInterval.split('/')[1].trim() : '';
+          const dateType = intervalList[1].trim();
+
+          dateDico = {"start": startdate, "type": dateType};
+          if (enddate !== '') {
+            dateDico["end"] = enddate;
+          }
+        } catch (e) {
+          console.warn('Failed to parse data interval:', e);
+        }
+      }
 
       if (communitydata !== '') {
         try {
@@ -47,6 +66,8 @@ ckan.module('get-doi', function ($, _) {
         }
       }
 
+      // Handle resource type with possible subtype (e.g. publication/journal-article)
+
       let type_list = resourceType.split('/');
       let pubType = "";
       let imgType = "";
@@ -62,10 +83,7 @@ ckan.module('get-doi', function ($, _) {
 
       const tags = this._FindTags(dataset);
 
-
       const authorList = [];
-
- 
 
       const authorNameList = dataset.author.split(',').map(name => name.trim().split(' ').map(name => name.charAt(0).toUpperCase() + name.substring(1).toLowerCase()).join(','));
 
@@ -109,9 +127,9 @@ ckan.module('get-doi', function ($, _) {
           keywords: tags,
           contributors: contributors,
           communities: communities,
-          publication_date: dataInterval,
           description: dataset.notes || 'No description provided',
           creators: authorList,
+          dates: [dateDico],
           access_right: this._GetAccessRights(dataset),
         }
       };
@@ -124,6 +142,9 @@ ckan.module('get-doi', function ($, _) {
         delete metadataObj.metadata.communities;
       }
 
+      if (dataInterval === '') {
+        delete metadataObj.metadata.dates;
+      }
 
       return metadataObj;
     },
