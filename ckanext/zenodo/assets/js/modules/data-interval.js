@@ -17,13 +17,22 @@ ckan.module('data-interval', function ($, _) {
                 const parts = value.split(',');
                 $interval.val(parts[0] ? parts[0].trim() : '');
                 $dateType.val(parts[1] ? parts[1].trim() : '');
+                $dateType.trigger('change');
             }
 
             function storeDataInterval() {
-                const combined = getCombinedValue();
-                window.localStorage.setItem('data_interval', combined);
-                window.dispatchEvent(new Event('data_interval_changed'));
-                console.log('Data interval stored:', combined);
+                const intervalVal = $interval.val();
+                const dateTypeVal = $dateType.val();
+                if (intervalVal || dateTypeVal) {
+                    const combined = `${intervalVal}, ${dateTypeVal}`;
+                    window.localStorage.setItem('data_interval', combined);
+                    window.dispatchEvent(new Event('data_interval_changed'));
+                    console.log('Data interval stored:', combined);
+                } else {
+                    window.localStorage.removeItem('data_interval');
+                    window.dispatchEvent(new Event('data_interval_changed'));
+                    console.log('Data interval removed from storage');
+                }
             }
 
             function applyDataInterval(value) {
@@ -110,9 +119,9 @@ ckan.module('data-interval', function ($, _) {
                             }
                         }
                         if (foundValue) {
-                            setFieldsFromCombined(foundValue);
+                            applyDataInterval(foundValue);
                         } else if (storedValue) {
-                            setFieldsFromCombined(storedValue);
+                            applyDataInterval(storedValue);
                         }
                         // Always store current field values to localStorage if non-empty
                         if ($interval.val() || $dateType.val()) {
@@ -121,7 +130,7 @@ ckan.module('data-interval', function ($, _) {
                     });
             } else {
                 if (storedValue) {
-                    setFieldsFromCombined(storedValue);
+                    applyDataInterval(storedValue);
                 }
                 // Always store current field values to localStorage if non-empty
                 if ($interval.val() || $dateType.val()) {

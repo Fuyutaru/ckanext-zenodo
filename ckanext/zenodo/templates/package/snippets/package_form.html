@@ -68,7 +68,7 @@ then itself be extended to add/remove blocks of functionality. #}
                class="form-control"
                data-module="data-interval"
                placeholder="{{ _('YYYY-MM-DD/YYYY-MM-DD. MM and DD are optional.') }}">
-        <select id="field-date-type" name="date_type" class="form-control">
+        <select id="field-date-type" name="date_type" data-module="autocomplete">
           <option value="">{{ _('Select date type') }}</option>
           {% for type in h.get_date_types() %}
             <option value="{{ type.value }}" {% if request.form.get('date_type', data.get('date_type')) == type.value %}selected{% endif %}>{{ _(type.label) }}</option>
